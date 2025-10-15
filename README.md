@@ -12,20 +12,40 @@ A comprehensive Python toolkit for calculating and estimating Jira ticket impact
 
 ## 📦 What's Included
 
-### Python Scripts
-- `intelligent_estimator.py` - **NEW!** AI-powered automatic estimation from any Jira XLSX
+### Repository Structure
+
+```
+impact-score-calculator/
+├── README.md                    # This file
+├── requirements.txt             # Python dependencies
+├── src/                        # Python scripts
+│   ├── intelligent_estimator.py
+│   ├── calculate_jira_scores.py
+│   ├── estimate_impact_score.py
+│   ├── impact_score_calculator.py
+│   └── jira_impact_score_processor.py
+└── docs/                       # Documentation
+    ├── USER_GUIDE.md           # Complete user guide (ALL tools)
+    ├── CLAUDE.md               # Claude Code instructions
+    ├── ROADMAP.md              # Project roadmap
+    ├── Impact_Score_Model.md   # Scoring model specification
+    ├── QUICK_REFERENCE.md      # Quick reference card
+    └── ... (additional guides)
+```
+
+### Python Scripts (`src/`)
+- `intelligent_estimator.py` - AI-powered automatic estimation from any Jira XLSX
 - `calculate_jira_scores.py` - Batch processor for multiple tickets
 - `estimate_impact_score.py` - Interactive estimator for single tickets
 - `impact_score_calculator.py` - Core calculation library
 - `jira_impact_score_processor.py` - Batch processing engine
 
-### Documentation
-- `README.md` - Main documentation (this file)
-- `INTELLIGENT_ESTIMATOR_GUIDE.md` - Guide for automatic estimation
-- `Impact_Score_Model.md` - Complete scoring model specification
-- `Impact_Score_Visual_Guide.md` - Visual diagrams and flowcharts
-- `TOOL_SELECTION_GUIDE.md` - Which tool to use when
-- `QUICK_REFERENCE.md` - Quick reference card
+### Documentation (`docs/`)
+- **[USER_GUIDE.md](docs/USER_GUIDE.md)** - **START HERE!** Complete guide for all tools
+- [CLAUDE.md](docs/CLAUDE.md) - Project-specific Claude Code instructions
+- [ROADMAP.md](docs/ROADMAP.md) - Project roadmap and future plans
+- [Impact_Score_Model.md](docs/Impact_Score_Model.md) - Complete scoring model
+- [QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md) - Quick reference card
 
 ## 🚀 Quick Start
 
@@ -46,30 +66,30 @@ pip install -r requirements.txt
 
 ```bash
 # Analyze any Jira ticket export - AI estimates all components!
-python intelligent_estimator.py RED-12345_Export.xlsx
+python src/intelligent_estimator.py RED-12345_Export.xlsx
 
 # With detailed output
-python intelligent_estimator.py ticket.xlsx --verbose
+python src/intelligent_estimator.py ticket.xlsx --verbose
 
 # Save to JSON
-python intelligent_estimator.py ticket.xlsx --output results.json
+python src/intelligent_estimator.py ticket.xlsx --output results.json
 ```
 
 #### Option 2: Batch Processing
 
 ```bash
 # Process multiple tickets
-python calculate_jira_scores.py your_jira_export.xlsx
+python src/calculate_jira_scores.py your_jira_export.xlsx
 
 # Show top tickets and validate
-python calculate_jira_scores.py tickets.xlsx --top 20 --validate
+python src/calculate_jira_scores.py tickets.xlsx --top 20 --validate
 ```
 
 #### Option 3: Interactive Single Ticket
 
 ```bash
 # Interactive mode - prompts for each component
-python estimate_impact_score.py --interactive
+python src/estimate_impact_score.py --interactive
 ```
 
 ## 📊 Impact Score Model
@@ -92,7 +112,7 @@ See `Impact_Score_Model.md` for complete details.
 ### Example 1: Auto-Estimate from Jira Export
 
 ```bash
-python intelligent_estimator.py RED-172041_Export.xlsx
+python src/intelligent_estimator.py RED-172041_Export.xlsx
 ```
 
 **Output:**
@@ -118,7 +138,7 @@ Component Breakdown:
 ### Example 2: Batch Processing
 
 ```bash
-python calculate_jira_scores.py tickets_export.xlsx --top 10
+python src/calculate_jira_scores.py tickets_export.xlsx --top 10
 ```
 
 Creates `jira_impact_scores_processed.xlsx` with calculated scores.
@@ -126,7 +146,7 @@ Creates `jira_impact_scores_processed.xlsx` with calculated scores.
 ### Example 3: Interactive Single Ticket
 
 ```bash
-python estimate_impact_score.py --interactive
+python src/estimate_impact_score.py --interactive
 ```
 
 Walks you through each component with prompts.
@@ -135,11 +155,11 @@ Walks you through each component with prompts.
 
 | Tool | Use Case | Input | Output |
 |------|----------|-------|--------|
-| `intelligent_estimator.py` | Auto-estimate any ticket | Single Jira XLSX | Console + JSON |
-| `calculate_jira_scores.py` | Batch process many tickets | Batch Jira XLSX | Excel with scores |
-| `estimate_impact_score.py` | Manual single ticket | Interactive prompts | Console + JSON |
+| `src/intelligent_estimator.py` | Auto-estimate any ticket | Single Jira XLSX | Console + JSON |
+| `src/calculate_jira_scores.py` | Batch process many tickets | Batch Jira XLSX | Excel with scores |
+| `src/estimate_impact_score.py` | Manual single ticket | Interactive prompts | Console + JSON |
 
-See `TOOL_SELECTION_GUIDE.md` for detailed comparison.
+See [docs/USER_GUIDE.md](docs/USER_GUIDE.md) for complete guide.
 
 ## 📋 Requirements
 
@@ -151,7 +171,7 @@ See `TOOL_SELECTION_GUIDE.md` for detailed comparison.
 
 ### Customize VIP Customers
 
-Edit `intelligent_estimator.py`:
+Edit `src/intelligent_estimator.py`:
 
 ```python
 VIP_CUSTOMERS = [
@@ -161,7 +181,7 @@ VIP_CUSTOMERS = [
 
 ### Adjust Keywords
 
-Modify keyword dictionaries in `intelligent_estimator.py`:
+Modify keyword dictionaries in `src/intelligent_estimator.py`:
 
 ```python
 WORKAROUND_KEYWORDS = {
@@ -172,11 +192,16 @@ WORKAROUND_KEYWORDS = {
 
 ## 📚 Documentation
 
-- **[INTELLIGENT_ESTIMATOR_GUIDE.md](INTELLIGENT_ESTIMATOR_GUIDE.md)** - Detailed guide for auto-estimation
-- **[Impact_Score_Model.md](Impact_Score_Model.md)** - Complete scoring model
-- **[Impact_Score_Visual_Guide.md](Impact_Score_Visual_Guide.md)** - Visual diagrams
-- **[TOOL_SELECTION_GUIDE.md](TOOL_SELECTION_GUIDE.md)** - Which tool to use
-- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick reference card
+**Start here:**
+- **[docs/USER_GUIDE.md](docs/USER_GUIDE.md)** - Complete guide for all tools (recommended!)
+
+**Reference docs:**
+- [docs/Impact_Score_Model.md](docs/Impact_Score_Model.md) - Complete scoring model
+- [docs/QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md) - Quick reference card
+- [docs/ROADMAP.md](docs/ROADMAP.md) - Project roadmap and future plans
+
+**For contributors:**
+- [docs/CLAUDE.md](docs/CLAUDE.md) - Project-specific Claude Code instructions
 
 ## 🐛 Known Limitations
 
