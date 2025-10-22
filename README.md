@@ -52,30 +52,30 @@ pip install -r requirements.txt
 
 ```bash
 # Analyze any Jira ticket export - AI estimates all components!
-python intelligent_estimator.py RED-12345_Export.xlsx
+python src/intelligent_estimator.py RED-12345_Export.xlsx
 
 # With detailed output
-python intelligent_estimator.py ticket.xlsx --verbose
+python src/intelligent_estimator.py ticket.xlsx --verbose
 
 # Save to JSON
-python intelligent_estimator.py ticket.xlsx --output results.json
+python src/intelligent_estimator.py ticket.xlsx --output results.json
 ```
 
 #### Option 2: Batch Processing
 
 ```bash
 # Process multiple tickets
-python calculate_jira_scores.py your_jira_export.xlsx
+python src/calculate_jira_scores.py your_jira_export.xlsx
 
 # Show top tickets and validate
-python calculate_jira_scores.py tickets.xlsx --top 20 --validate
+python src/calculate_jira_scores.py tickets.xlsx --top 20 --validate
 ```
 
 #### Option 3: Interactive Single Ticket
 
 ```bash
 # Interactive mode - prompts for each component
-python estimate_impact_score.py --interactive
+python src/estimate_impact_score.py --interactive
 ```
 
 ## 📊 Impact Score Model
@@ -122,7 +122,7 @@ See [docs/IMPACT_SCORE_MODEL.md](docs/IMPACT_SCORE_MODEL.md) for complete detail
 ### Example 1: Auto-Estimate from Jira Export
 
 ```bash
-python intelligent_estimator.py RED-172041_Export.xlsx
+python src/intelligent_estimator.py RED-172041_Export.xlsx
 ```
 
 **Output:**
@@ -148,7 +148,7 @@ Component Breakdown:
 ### Example 2: Batch Processing
 
 ```bash
-python calculate_jira_scores.py tickets_export.xlsx --top 10
+python src/calculate_jira_scores.py tickets_export.xlsx --top 10
 ```
 
 Creates `jira_impact_scores_processed.xlsx` with calculated scores.
@@ -156,7 +156,7 @@ Creates `jira_impact_scores_processed.xlsx` with calculated scores.
 ### Example 3: Interactive Single Ticket
 
 ```bash
-python estimate_impact_score.py --interactive
+python src/estimate_impact_score.py --interactive
 ```
 
 Walks you through each component with prompts.
@@ -171,15 +171,15 @@ Do you have a Jira export file?
 ├─ YES → Is it a batch export with multiple tickets?
 │   │
 │   ├─ YES → Use: calculate_jira_scores.py (Batch Processor)
-│   │         python calculate_jira_scores.py export.xlsx
+│   │         python src/calculate_jira_scores.py export.xlsx
 │   │
 │   └─ NO → Single ticket export
 │           Use: intelligent_estimator.py (AI Auto-Estimation)
-│           python intelligent_estimator.py RED-12345.xlsx
+│           python src/intelligent_estimator.py RED-12345.xlsx
 │
 └─ NO → Manual estimation needed?
           Use: estimate_impact_score.py (Interactive Estimator)
-          python estimate_impact_score.py --interactive
+          python src/estimate_impact_score.py --interactive
 ```
 
 ### Tools Comparison
@@ -200,7 +200,7 @@ Do you have a Jira export file?
 
 ### Customize VIP Customers
 
-Edit `intelligent_estimator.py`:
+Edit `src/intelligent_estimator.py`:
 
 ```python
 VIP_CUSTOMERS = [
@@ -210,7 +210,7 @@ VIP_CUSTOMERS = [
 
 ### Adjust Keywords
 
-Modify keyword dictionaries in `intelligent_estimator.py`:
+Modify keyword dictionaries in `src/intelligent_estimator.py`:
 
 ```python
 WORKAROUND_KEYWORDS = {
