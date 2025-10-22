@@ -102,6 +102,17 @@ Core scoring logic is in:
 
 **Important**: Keep scoring logic consistent across all three tools!
 
+**⚠️ CRITICAL: Scoring Model Documentation Sync**
+
+When modifying scoring rules or clarifications:
+1. **Update BOTH documentation files:**
+   - `docs/IMPACT_SCORE_MODEL.md` - Complete scoring specification
+   - `docs/IMPACT_SCORE_VISUAL_GUIDE.md` - Quick reference tables and examples
+2. **Keep them in sync:** Any change to scoring logic, thresholds, or clarifications MUST be reflected in both files
+3. **Recent example:** SLA Breach and RCA Action Item clarifications (Oct 2025)
+   - Added ACRE exception to SLA Breach (always 0 for ACRE)
+   - Clarified RCA Action Item definition (past RCA follow-up vs current incident)
+
 ### Adding New Keywords
 
 Keywords are defined in `intelligent_estimator.py`:
