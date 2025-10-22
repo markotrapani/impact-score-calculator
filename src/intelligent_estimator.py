@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 """
-Intelligent Jira Impact Score Estimator
+Intelligent Impact Score Estimator
 
-Analyzes Jira ticket exports and automatically estimates impact score components
-based on ticket fields, description, labels, and other metadata.
+Analyzes Jira and Zendesk ticket exports and automatically estimates impact score
+components based on ticket fields, description, labels, and other metadata.
+
+Supported formats:
+- Jira: PDF, Excel (.xlsx), XML, Word (.docx)
+- Zendesk: PDF
 
 Usage:
-    python intelligent_estimator.py <jira_export.xlsx>
-    python intelligent_estimator.py <jira_export.xlsx> --output scores.json
+    python intelligent_estimator.py <ticket_export>
+    python intelligent_estimator.py RED-12345.pdf --output scores.json
+    python intelligent_estimator.py zendesk_ticket_789.pdf
 """
 
 import sys
@@ -17,6 +22,13 @@ import argparse
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import pandas as pd
+
+# Import universal parser for multi-format support
+try:
+    from universal_ticket_parser import parse_ticket_file
+    UNIVERSAL_PARSER_AVAILABLE = True
+except ImportError:
+    UNIVERSAL_PARSER_AVAILABLE = False
 
 
 class IntelligentImpactEstimator:
@@ -87,33 +99,54 @@ class IntelligentImpactEstimator:
     # RCA indicators
     RCA_KEYWORDS = ['rca', 'root cause', 'action item', 'post mortem', 'postmortem']
     
-    def __init__(self, excel_path: str):
-        """Initialize with path to Jira Excel export."""
-        self.excel_path = Path(excel_path)
+    def __init__(self, file_path: str):
+        """Initialize with path to ticket export (PDF/Excel/XML/Word)."""
+        self.file_path = Path(file_path)
+        self.file_ext = self.file_path.suffix.lower()
         self.df = None
         self.ticket_data = {}
-        
-    def load_data(self) -> pd.DataFrame:
-        """Load Jira export data."""
+
+    def load_data(self):
+        """Load ticket export data from any supported format."""
         try:
-            # Try to read the file
-            xl_file = pd.ExcelFile(self.excel_path)
-            sheet_name = xl_file.sheet_names[0]
-            self.df = pd.read_excel(self.excel_path, sheet_name=sheet_name)
-            
-            print(f"✓ Loaded ticket data from {self.excel_path}")
-            print(f"  Sheet: {sheet_name}")
-            print(f"  Columns: {len(self.df.columns)}")
-            
-            return self.df
+            # Try universal parser first for non-Excel formats
+            if self.file_ext in ['.pdf', '.xml', '.docx']:
+                if not UNIVERSAL_PARSER_AVAILABLE:
+                    raise ImportError("universal_ticket_parser module required for non-Excel formats")
+
+                print(f"✓ Parsing {self.file_ext.upper()} file: {self.file_path}")
+                self.ticket_data = parse_ticket_file(self.file_path)
+                print(f"  Source: {self.ticket_data.get('source', 'unknown').upper()}")
+                print(f"  Ticket ID: {self.ticket_data.get('issue_key') or self.ticket_data.get('ticket_id')}")
+                return self.ticket_data
+
+            # Excel format - use existing pandas logic
+            elif self.file_ext == '.xlsx':
+                xl_file = pd.ExcelFile(self.file_path)
+                sheet_name = xl_file.sheet_names[0]
+                self.df = pd.read_excel(self.file_path, sheet_name=sheet_name)
+
+                print(f"✓ Loaded Excel data from {self.file_path}")
+                print(f"  Sheet: {sheet_name}")
+                print(f"  Columns: {len(self.df.columns)}")
+
+                return self.df
+            else:
+                raise ValueError(f"Unsupported file format: {self.file_ext}")
+
         except Exception as e:
-            raise Exception(f"Error loading Excel file: {e}")
+            raise Exception(f"Error loading file: {e}")
     
     def extract_ticket_info(self) -> Dict:
         """Extract key information from the ticket."""
+        # If already loaded via universal parser (PDF/XML/DOCX), return as-is
+        if self.ticket_data and self.file_ext in ['.pdf', '.xml', '.docx']:
+            return self.ticket_data
+
+        # Excel format - extract from DataFrame
         if self.df is None:
             raise ValueError("No data loaded. Call load_data() first.")
-        
+
         row = self.df.iloc[0]
         
         # Extract key fields
@@ -598,13 +631,23 @@ class IntelligentImpactEstimator:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Intelligently estimate Jira ticket impact scores from Excel export',
+        description='Intelligently estimate impact scores from Jira/Zendesk ticket exports',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Supported formats:
+  Jira:     PDF, Excel (.xlsx), XML, Word (.docx)
+  Zendesk:  PDF
+
+Examples:
+  %(prog)s RED-12345.pdf
+  %(prog)s zendesk_ticket_789.pdf --output scores.json
+  %(prog)s jira_export.xlsx --verbose
+        """
     )
-    
+
     parser.add_argument(
         'file',
-        help='Path to Jira Excel export'
+        help='Path to ticket export file (PDF/Excel/XML/Word)'
     )
     
     parser.add_argument(
@@ -627,9 +670,10 @@ def main():
         sys.exit(1)
     
     print("="*80)
-    print("INTELLIGENT JIRA IMPACT SCORE ESTIMATOR")
+    print("INTELLIGENT IMPACT SCORE ESTIMATOR")
     print("="*80)
-    print(f"\nAnalyzing: {args.file}\n")
+    print(f"\nAnalyzing: {args.file}")
+    print(f"Format: {Path(args.file).suffix.upper()}\n")
     
     try:
         # Initialize estimator

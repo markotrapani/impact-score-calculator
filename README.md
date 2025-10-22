@@ -4,10 +4,11 @@ A comprehensive Python toolkit for calculating and estimating Jira ticket impact
 
 ## 🎯 Features
 
-- **Intelligent Auto-Estimation**: AI-powered analysis of Jira exports to automatically estimate impact scores
+- **Multi-Format Support**: Process Jira (PDF/Excel/XML/Word) and Zendesk (PDF) exports
+- **Intelligent Auto-Estimation**: AI-powered analysis to automatically estimate impact scores
 - **Batch Processing**: Calculate scores for multiple tickets at once
 - **Interactive Estimation**: Step-by-step wizard for single ticket scoring
-- **Zendesk Integration**: Convert Zendesk tickets to Jira-importable formats
+- **ACRE & RCA Detection**: Automatic handling of Azure Cache for Redis and RCA action items
 - **Comprehensive Documentation**: Detailed guides and scoring model reference
 
 ## 📦 What's Included
@@ -19,8 +20,9 @@ impact-score-calculator/
 ├── README.md                           # This file
 ├── CLAUDE.md                           # Claude Code instructions
 ├── requirements.txt                    # Python dependencies
-├── Python Scripts (Core Tools)
-│   ├── intelligent_estimator.py        # AI-powered auto-estimation
+├── src/                                # Python Scripts (Core Tools)
+│   ├── intelligent_estimator.py        # AI-powered auto-estimation (multi-format)
+│   ├── universal_ticket_parser.py      # Multi-format parser (PDF/XML/Word)
 │   ├── calculate_jira_scores.py        # Batch processor
 │   ├── estimate_impact_score.py        # Interactive single-ticket estimator
 │   ├── impact_score_calculator.py      # Core calculation library
@@ -51,15 +53,22 @@ pip install -r requirements.txt
 #### Option 1: Intelligent Auto-Estimation (Recommended)
 
 ```bash
-# Analyze any Jira ticket export - AI estimates all components!
-python src/intelligent_estimator.py RED-12345_Export.xlsx
+# Analyze Jira PDF export
+python src/intelligent_estimator.py RED-12345.pdf
 
-# With detailed output
-python src/intelligent_estimator.py ticket.xlsx --verbose
+# Analyze Zendesk PDF export
+python src/intelligent_estimator.py zendesk_ticket_789.pdf
 
-# Save to JSON
-python src/intelligent_estimator.py ticket.xlsx --output results.json
+# Analyze Jira Excel export
+python src/intelligent_estimator.py jira_export.xlsx --verbose
+
+# Analyze Jira Word/XML export
+python src/intelligent_estimator.py ticket.docx --output scores.json
 ```
+
+**Supported formats:**
+- **Jira**: PDF, Excel (.xlsx), XML, Word (.docx)
+- **Zendesk**: PDF
 
 #### Option 2: Batch Processing
 
@@ -192,9 +201,20 @@ Do you have a Jira export file?
 
 ## 📋 Requirements
 
+**Core dependencies:**
 - Python 3.8+
 - pandas >= 2.0.0
 - openpyxl >= 3.1.0
+
+**Multi-format support:**
+- pymupdf >= 1.23.0 (PDF extraction)
+- python-docx >= 1.1.0 (Word documents)
+- lxml >= 5.0.0 (XML parsing)
+
+Install all dependencies:
+```bash
+pip install -r requirements.txt
+```
 
 ## 🔧 Configuration
 

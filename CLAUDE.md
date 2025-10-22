@@ -58,7 +58,12 @@ impact-score-calculator/
 - **Key Libraries**:
   - `pandas` (>= 2.0.0) - Data processing
   - `openpyxl` (>= 3.1.0) - Excel file handling
-- **Data Format**: Jira Excel exports (.xlsx)
+  - `pymupdf` (>= 1.23.0) - PDF extraction
+  - `python-docx` (>= 1.1.0) - Word document support
+  - `lxml` (>= 5.0.0) - XML parsing
+- **Supported Input Formats**:
+  - **Jira**: PDF, Excel (.xlsx), XML, Word (.docx)
+  - **Zendesk**: PDF
 - **Output Formats**: Console, JSON, Excel
 
 ---
