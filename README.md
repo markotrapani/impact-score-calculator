@@ -30,7 +30,6 @@ impact-score-calculator/
     ├── IMPACT_SCORE_VISUAL_GUIDE.md    # Visual diagrams and examples
     ├── INTELLIGENT_ESTIMATOR_GUIDE.md  # AI estimator guide
     ├── JIRA_PROCESSOR_USER_GUIDE.md    # Batch processor API reference
-    ├── ESTIMATOR_GUIDE.md              # Interactive estimator guide
     └── ROADMAP.md                      # Project roadmap
 ```
 
@@ -230,7 +229,6 @@ WORKAROUND_KEYWORDS = {
 **Tool-specific guides:**
 - [docs/INTELLIGENT_ESTIMATOR_GUIDE.md](docs/INTELLIGENT_ESTIMATOR_GUIDE.md) - AI estimator detailed guide
 - [docs/JIRA_PROCESSOR_USER_GUIDE.md](docs/JIRA_PROCESSOR_USER_GUIDE.md) - Batch processor API reference
-- [docs/ESTIMATOR_GUIDE.md](docs/ESTIMATOR_GUIDE.md) - Interactive estimator guide
 
 **For contributors:**
 - [CLAUDE.md](CLAUDE.md) - Project-specific Claude Code instructions
