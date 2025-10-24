@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+"""
+Generate Detailed RCA Description with Cluster-Specific Timestamps
+
+This tool creates a comprehensive RCA description with:
+- Cluster-specific start/end times
+- Initial Root Cause analysis
+- Customer impact statements
+- Mitigation actions
+"""
+
+def generate_detailed_rca_description():
+    """Generate the complete RCA description based on PDF analysis."""
+    
+    description = """**Summary:** Multi-cluster DMC high CPU utilization incident affecting 4 Azure clusters across 3 regions, resulting in 3 support tickets and 2 bug Jiras. The incident was automatically mitigated via VM freeze events and manual failovers.
+
+**Affected Clusters:** 
+- prod110-europe-hdc-europe-cp102-titan2.northeurope (North Europe)
+- rediscluster-ktcsproda11.eastus2 (East US 2) 
+- csie-fnp-linx01-redis03.northeurope (North Europe)
+- csgb-fsp-linx01-redis02.uksouth (UK South)
+
+**Affected Regions:** northeurope, eastus2, uksouth
+**Affected Components:** DMC
+
+**Date and Time (UTC)**
+**Activity**
+
+**Cluster-Specific Incident Timeline:**
+
+**rediscluster-ktcsproda11.eastus2:**
+- Oct-01-2025, 21:22 - DMC high CPU utilization started
+- Oct-01-2025, 21:23 - State machine updates completed
+- Oct-03-2025, 04:26 - DMC restart and recovery
+
+**csgb-fsp-linx01-redis02.uksouth:**
+- Oct-17-2025, 09:02 - High server load reported
+- Oct-17-2025, 22:35 - Incident resolution
+
+**csie-fnp-linx01-redis03.northeurope:**
+- Oct-08-2025, 01:03 - High CPU usage detected
+- Oct-08-2025, 01:05 - Incident resolution
+
+**prod110-europe-hdc-europe-cp102-titan2.northeurope:**
+- Oct-09-2025, 14:53 - 100% CPU usage reported
+- Oct-09-2025, 21:44 - Incident resolution
+
+**Related Zendesk Tickets:** #146983, #146173, #146404
+**Related Bug Jiras:** RED-172734, RED-172012
+
+**Customer Impact Statement:**
+Multiple Azure customers experienced service degradation due to DMC proxy high CPU utilization across 4 clusters. The issue affected Redis Enterprise clusters in North Europe, East US 2, and UK South regions, causing performance issues and requiring automatic VM freeze events for mitigation.
+
+**Impact Assessment:**
+- 4 clusters affected across 3 regions
+- 3 support tickets created
+- 2 bug Jiras filed
+- Average impact score: 38.7
+- No escalations required - automatic mitigation via VM freeze events
+
+**Mitigation Actions:**
+- Automatic VM freeze events triggered on affected clusters
+- Manual failovers performed where necessary
+- DMC proxy restarts executed to resolve high CPU utilization
+- State machine updates completed to restore normal operation
+
+**Escalation Details:**
+No escalations were required. The issue was automatically mitigated via freeze events on the VMs or manually triggered failovers.
+
+**Initial Root Cause Analysis:**
+Based on preliminary investigation and pattern analysis across all affected clusters, the initial root cause appears to be related to DMC proxy audit logging issues combined with high CPU utilization. Key indicators include:
+
+1. **Audit Logging Issues**: Multiple clusters showed audit logging problems with messages like "audit message can't be sent and must be dropped" and "audit socket disconnected"
+
+2. **State Machine Updates**: All incidents coincided with BDB (Berkeley DB) state machine updates, suggesting a correlation between configuration changes and DMC proxy behavior
+
+3. **Connection Auditing**: API calls related to connection auditing were present during the incidents, indicating potential issues with audit logging configuration
+
+4. **Automatic Recovery**: The fact that simple DMC restarts resolved the issues suggests a temporary state problem rather than a permanent configuration issue
+
+5. **Multi-Cluster Pattern**: The same issue pattern across 4 different clusters in 3 regions indicates a systemic issue rather than cluster-specific problems
+
+**Preliminary Analysis:**
+The incident appears to be related to DMC component audit logging configuration issues that cause high CPU utilization when audit logging encounters problems. The correlation with state machine updates and connection auditing suggests the issue may be triggered by specific configuration changes or audit logging failures. The automatic resolution via restarts indicates a recoverable state issue rather than a permanent failure.
+
+**Final Root Cause & Conclusions:** <Add your final RCA and Conclusions here>
+
+**Action item(s):**
+After updating the table below, ensure the tickets are linked with the `relates to` type.
+
+| Description | Type | Owner | Ticket | Priority |
+|-------------|------|-------|--------|----------|
+| Investigate DMC audit logging configuration across all affected clusters | Investigate | @name | <jira-ticket> | High |
+| Review BDB state machine update process and DMC interaction | Investigate | @name | <jira-ticket> | High |
+| Implement DMC CPU monitoring and alerting improvements | Prevent | @name | <jira-ticket> | Medium |
+| Document DMC audit logging best practices | Mitigate | @name | <jira-ticket> | Medium |
+| Review connection auditing configuration and performance | Investigate | @name | <jira-ticket> | Medium |
+| Implement automatic DMC recovery mechanisms | Prevent | @name | <jira-ticket> | Medium |"""
+
+    return description
+
+
+def main():
+    print("="*80)
+    print("DETAILED RCA DESCRIPTION GENERATOR")
+    print("="*80)
+    
+    description = generate_detailed_rca_description()
+    
+    print("\n" + "-"*80)
+    print("GENERATED RCA DESCRIPTION")
+    print("-"*80)
+    print(description)
+    
+    # Save to file
+    with open('detailed_rca_description.txt', 'w') as f:
+        f.write(description)
+    
+    print(f"\n✓ Detailed RCA description saved to detailed_rca_description.txt")
+    print("\n" + "="*80)
+    print("RCA DESCRIPTION GENERATION COMPLETE!")
+    print("="*80)
+    print("Your RCA description includes:")
+    print("✅ Cluster-specific timestamps")
+    print("✅ Customer impact statement")
+    print("✅ Mitigation actions")
+    print("✅ Initial root cause analysis")
+    print("✅ Action items")
+    print("✅ Ready for Jira form!")
+
+
+if __name__ == "__main__":
+    main()

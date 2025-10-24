@@ -1,0 +1,51 @@
+{
+  "project": "Root Cause Analysis",
+  "issue_type": "RCA",
+  "summary": "Azure - RCA 10/25/25",
+  "description": "**Summary:** <Add comprehensive incident summary covering all affected clusters>\n\n**Affected Clusters:** rediscluster-ktcsproda11, rediscluster-ktcsproda12, rediscluster-ktcsproda13\n**Affected Regions:** eastus2, westus2, northeurope\n**Affected Components:** DMC, Redis, Cluster\n\n**Date and Time (UTC)**\n**Activity**\nMMM-DD-YYYY, HH:MM <What happened/what has been done>\n\n**Related Zendesk Tickets:** 146173, 146983, 146984\n**Related Bug Jiras:** RED-172012, RED-172013\n\n**Initial Root Cause:** <Add preliminary understanding of multi-cluster impact>\n\n**Final Root Cause & Conclusions:** <Add detailed analysis of root cause>\n\n**Action item(s):**\nAfter updating the table below, ensure the tickets are linked with the `relates to` type.\n\n| Description | Type | Owner | Ticket | Cluster |\n|-------------|------|-------|--------|----------|\n| Investigate rediscluster-ktcsproda11 cluster impact | Investigate | @name | <jira-ticket> | rediscluster-ktcsproda11 |\n| Investigate rediscluster-ktcsproda12 cluster impact | Investigate | @name | <jira-ticket> | rediscluster-ktcsproda12 |\n| Investigate rediscluster-ktcsproda13 cluster impact | Investigate | @name | <jira-ticket> | rediscluster-ktcsproda13 |\n| Review DMC component across all clusters | Investigate | @name | <jira-ticket> | All |\n| Review Redis component across all clusters | Investigate | @name | <jira-ticket> | All |\n| Review Cluster component across all clusters | Investigate | @name | <jira-ticket> | All |\n| Implement preventive measures across all clusters | Prevent | @name | <jira-ticket> | All |\n| Document multi-cluster incident response | Mitigate | @name | <jira-ticket> | All |\n",
+  "priority": "Medium",
+  "severity": "Medium",
+  "labels": [
+    "Azure"
+  ],
+  "custom_fields": {
+    "zendesk_tickets": [
+      "146173",
+      "146983",
+      "146984"
+    ],
+    "slack_channel": "#prod-102525-azure",
+    "initial_root_cause": "<Add your initial RCA here>",
+    "final_root_cause": "<Add your final RCA and Conclusions here>",
+    "action_items": [],
+    "cluster_id": "",
+    "account_id": "",
+    "affected_component": "",
+    "environment": "",
+    "cache_name": "",
+    "region": "",
+    "affected_clusters": [
+      "rediscluster-ktcsproda11",
+      "rediscluster-ktcsproda12",
+      "rediscluster-ktcsproda13"
+    ],
+    "affected_regions": [
+      "eastus2",
+      "westus2",
+      "northeurope"
+    ],
+    "affected_components": [
+      "DMC",
+      "Redis",
+      "Cluster"
+    ],
+    "incident_scope": "Multi-cluster",
+    "total_affected_clusters": 3,
+    "total_support_tickets": 3,
+    "total_bug_jiras": 2
+  },
+  "linked_issues": [
+    "RED-172012",
+    "RED-172013"
+  ]
+}

@@ -1,11 +1,13 @@
-# Jira Impact Score Calculator Toolkit
+# Jira Helper
 
-A comprehensive Python toolkit for calculating and estimating Jira ticket impact scores based on multiple factors including severity, customer ARR, frequency, workarounds, and more.
+A comprehensive Python toolkit for Jira ticket management, impact score calculation, and RCA automation. Features intelligent PDF analysis, automatic ticket creation, and multi-cluster RCA generation.
 
 ## 🎯 Features
 
 - **Multi-Format Support**: Process Jira (PDF/Excel/XML/Word) and Zendesk (PDF) exports
 - **Intelligent Auto-Estimation**: AI-powered analysis to automatically estimate impact scores
+- **Jira Creation**: Create Jira tickets from Zendesk PDFs with automatic field mapping
+- **RCA Ticket Creation**: Generate RCA tickets following your Confluence template
 - **Batch Processing**: Calculate scores for multiple tickets at once
 - **Interactive Estimation**: Step-by-step wizard for single ticket scoring
 - **ACRE & RCA Detection**: Automatic handling of Azure Cache for Redis and RCA action items
@@ -23,6 +25,9 @@ impact-score-calculator/
 ├── src/                                # Python Scripts (Core Tools)
 │   ├── intelligent_estimator.py        # AI-powered auto-estimation (multi-format)
 │   ├── universal_ticket_parser.py      # Multi-format parser (PDF/XML/Word)
+│   ├── jira_creator.py                 # Jira ticket creation engine
+│   ├── create_jira_from_zendesk.py     # Create bug Jiras from Zendesk PDFs
+│   ├── create_rca_ticket.py            # Create RCA tickets from template
 │   ├── calculate_jira_scores.py        # Batch processor
 │   ├── estimate_impact_score.py        # Interactive single-ticket estimator
 │   ├── impact_score_calculator.py      # Core calculation library
@@ -32,6 +37,7 @@ impact-score-calculator/
     ├── IMPACT_SCORE_VISUAL_GUIDE.md    # Visual diagrams and examples
     ├── INTELLIGENT_ESTIMATOR_GUIDE.md  # AI estimator guide
     ├── JIRA_PROCESSOR_USER_GUIDE.md    # Batch processor API reference
+    ├── JIRA_CREATION_GUIDE.md          # Jira creation guide
     └── ROADMAP.md                      # Project roadmap
 ```
 
@@ -85,6 +91,19 @@ python src/calculate_jira_scores.py tickets.xlsx --top 20 --validate
 ```bash
 # Interactive mode - prompts for each component
 python src/estimate_impact_score.py --interactive
+```
+
+#### Option 4: Create Jira Tickets (NEW!)
+
+```bash
+# Create bug Jira from Zendesk PDF
+python src/create_jira_from_zendesk.py zendesk_ticket.pdf --project RED
+
+# Analyze Zendesk ticket and suggest Jira fields
+python src/create_jira_from_zendesk.py zendesk_ticket.pdf --suggest-only
+
+# Create RCA ticket
+python src/create_rca_ticket.py --customer "Azure" --date "10/25/25" --zendesk-tickets 131142
 ```
 
 ## 📊 Impact Score Model

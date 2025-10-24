@@ -1,0 +1,51 @@
+{
+  "project": "Root Cause Analysis",
+  "issue_type": "RCA",
+  "summary": "Azure - RCA 10/24/25",
+  "description": "**Summary:** <Add comprehensive incident summary covering all affected clusters>\n\n**Affected Clusters:** prod110-europe-hdc-europe-cp102-titan2.northeurope, rediscluster-ktcsproda11.eastus2, csie-fnp-linx01-redis03.northeurope, csgb-fsp-linx01-redis02.uksouth\n**Affected Regions:** northeurope, eastus2, northeurope, uksouth\n**Affected Components:** DMC\n\n**Date and Time (UTC)**\n**Activity**\nMMM-DD-YYYY, HH:MM <What happened/what has been done>\n\n**Related Zendesk Tickets:** 146983, 146173, 146404\n**Related Bug Jiras:** RED-172734, RED-172012\n\n**Initial Root Cause:** <Add preliminary understanding of multi-cluster impact>\n\n**Final Root Cause & Conclusions:** <Add detailed analysis of root cause>\n\n**Action item(s):**\nAfter updating the table below, ensure the tickets are linked with the `relates to` type.\n\n| Description | Type | Owner | Ticket | Cluster |\n|-------------|------|-------|--------|----------|\n| Investigate prod110-europe-hdc-europe-cp102-titan2.northeurope cluster impact | Investigate | @name | <jira-ticket> | prod110-europe-hdc-europe-cp102-titan2.northeurope |\n| Investigate rediscluster-ktcsproda11.eastus2 cluster impact | Investigate | @name | <jira-ticket> | rediscluster-ktcsproda11.eastus2 |\n| Investigate csie-fnp-linx01-redis03.northeurope cluster impact | Investigate | @name | <jira-ticket> | csie-fnp-linx01-redis03.northeurope |\n| Investigate csgb-fsp-linx01-redis02.uksouth cluster impact | Investigate | @name | <jira-ticket> | csgb-fsp-linx01-redis02.uksouth |\n| Review DMC component across all clusters | Investigate | @name | <jira-ticket> | All |\n| Implement preventive measures across all clusters | Prevent | @name | <jira-ticket> | All |\n| Document multi-cluster incident response | Mitigate | @name | <jira-ticket> | All |\n",
+  "priority": "Medium",
+  "severity": "Medium",
+  "labels": [
+    "Azure"
+  ],
+  "custom_fields": {
+    "zendesk_tickets": [
+      "146983",
+      "146173",
+      "146404"
+    ],
+    "slack_channel": "#prod-102425-azure",
+    "initial_root_cause": "<Add your initial RCA here>",
+    "final_root_cause": "<Add your final RCA and Conclusions here>",
+    "action_items": [],
+    "cluster_id": "",
+    "account_id": "",
+    "affected_component": "",
+    "environment": "",
+    "cache_name": "",
+    "region": "",
+    "affected_clusters": [
+      "prod110-europe-hdc-europe-cp102-titan2.northeurope",
+      "rediscluster-ktcsproda11.eastus2",
+      "csie-fnp-linx01-redis03.northeurope",
+      "csgb-fsp-linx01-redis02.uksouth"
+    ],
+    "affected_regions": [
+      "northeurope",
+      "eastus2",
+      "northeurope",
+      "uksouth"
+    ],
+    "affected_components": [
+      "DMC"
+    ],
+    "incident_scope": "Multi-cluster",
+    "total_affected_clusters": 4,
+    "total_support_tickets": 3,
+    "total_bug_jiras": 2
+  },
+  "linked_issues": [
+    "RED-172734",
+    "RED-172012"
+  ]
+}

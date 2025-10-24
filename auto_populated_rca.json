@@ -1,0 +1,49 @@
+{
+  "project": "Root Cause Analysis",
+  "issue_type": "RCA",
+  "summary": "Azure - RCA 10/25/25",
+  "description": "**Summary:** None\n\n**Cache Name:** rediscluster-ktcsproda11\n**Region:** eastus2\n\n**Date and Time (UTC)**\n**Activity**\nMMM-DD-YYYY, HH:MM <What happened/what has been done>\n\n**Related Zendesk Tickets:** 146173, 146983\n\n**Initial Root Cause:** Initial analysis suggests: High CPU utilization, Audit logging issues, Connection problems, Service restart required. Bug: None. Requires detailed investigation.\n\n**Final Root Cause & Conclusions:** <Add your final RCA and Conclusions here>\n\n**Action item(s):**\nAfter updating the table below, ensure the tickets are linked with the `relates to` type.\n\n| Description | Type | Owner | Ticket |\n|-------------|------|-------|--------|\n| Investigate CPU utilization patterns | Investigate | @name | <jira-ticket> |\n| Review audit logging configuration | Investigate | @name | <jira-ticket> |\n| Implement automatic recovery mechanisms | Prevent | @name | <jira-ticket> |\n",
+  "priority": "Medium",
+  "severity": "Medium",
+  "labels": [
+    "Azure"
+  ],
+  "custom_fields": {
+    "zendesk_tickets": [
+      "146173",
+      "146983"
+    ],
+    "slack_channel": "#prod-102525-azure",
+    "initial_root_cause": "Initial analysis suggests: High CPU utilization, Audit logging issues, Connection problems, Service restart required. Bug: None. Requires detailed investigation.",
+    "final_root_cause": "<Add your final RCA and Conclusions here>",
+    "action_items": [
+      {
+        "description": "Investigate CPU utilization patterns",
+        "type": "Investigate",
+        "owner": "@name",
+        "ticket": "<jira-ticket>"
+      },
+      {
+        "description": "Review audit logging configuration",
+        "type": "Investigate",
+        "owner": "@name",
+        "ticket": "<jira-ticket>"
+      },
+      {
+        "description": "Implement automatic recovery mechanisms",
+        "type": "Prevent",
+        "owner": "@name",
+        "ticket": "<jira-ticket>"
+      }
+    ],
+    "cluster_id": "",
+    "account_id": "",
+    "affected_component": "DMC",
+    "environment": "Azure",
+    "cache_name": "rediscluster-ktcsproda11",
+    "region": "eastus2"
+  },
+  "linked_issues": [
+    "RED-172012"
+  ]
+}
