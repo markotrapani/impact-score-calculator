@@ -4,21 +4,38 @@ A comprehensive Python toolkit for Jira ticket management, impact score calculat
 
 ## 🎯 Features
 
+### **Core Impact Score Calculation**
 - **Multi-Format Support**: Process Jira (PDF/Excel/XML/Word) and Zendesk (PDF) exports
 - **Intelligent Auto-Estimation**: AI-powered analysis to automatically estimate impact scores
-- **Jira Creation**: Create Jira tickets from Zendesk PDFs with automatic field mapping
-- **RCA Ticket Creation**: Generate RCA tickets following your Confluence template
 - **Batch Processing**: Calculate scores for multiple tickets at once
 - **Interactive Estimation**: Step-by-step wizard for single ticket scoring
 - **ACRE & RCA Detection**: Automatic handling of Azure Cache for Redis and RCA action items
+
+### **Jira Ticket Creation & Management**
+- **Bug Jira Creation**: Create Jira tickets from Zendesk PDFs with automatic field mapping
+- **RCA Ticket Creation**: Generate RCA tickets following your Confluence template
+- **Multi-Cluster RCA Support**: Handle complex incidents across multiple clusters and regions
+- **Auto-Population**: Automatically fill RCA fields from related bug Jira PDFs
+- **PDF Analysis**: Extract timestamps, components, and resolution methods from PDFs
+
+### **Advanced RCA Automation**
+- **PDF Summary Generation**: Analyze multiple Zendesk and Jira PDFs to generate comprehensive summaries
+- **Cluster-Specific Timestamps**: Extract and organize timestamps for each affected cluster
+- **Resolution Method Detection**: Distinguish between manual restarts and automatic VM freeze events
+- **Timeline Generation**: Create detailed incident timelines from PDF content
+- **Action Item Extraction**: Automatically identify and categorize action items
+
+### **Documentation & Examples**
 - **Comprehensive Documentation**: Detailed guides and scoring model reference
+- **Example PDFs**: Real-world examples of Zendesk tickets, Jira exports, and RCA templates
+- **Generated Examples**: Sample outputs showing the full RCA creation workflow
 
 ## 📦 What's Included
 
 ### Repository Structure
 
 ```
-impact-score-calculator/
+jira-helper/
 ├── README.md                           # This file
 ├── CLAUDE.md                           # Claude Code instructions
 ├── requirements.txt                    # Python dependencies
@@ -28,17 +45,49 @@ impact-score-calculator/
 │   ├── jira_creator.py                 # Jira ticket creation engine
 │   ├── create_jira_from_zendesk.py     # Create bug Jiras from Zendesk PDFs
 │   ├── create_rca_ticket.py            # Create RCA tickets from template
+│   ├── create_multi_cluster_rca.py     # Multi-cluster RCA creation
+│   ├── generate_rca_summary.py         # PDF analysis and summary generation
+│   ├── generate_complete_rca.py        # Complete RCA with auto-generated content
 │   ├── calculate_jira_scores.py        # Batch processor
 │   ├── estimate_impact_score.py        # Interactive single-ticket estimator
 │   ├── impact_score_calculator.py      # Core calculation library
 │   └── jira_impact_score_processor.py  # Batch processing engine
-└── docs/                               # Documentation
-    ├── IMPACT_SCORE_MODEL.md           # Scoring model specification
-    ├── IMPACT_SCORE_VISUAL_GUIDE.md    # Visual diagrams and examples
-    ├── INTELLIGENT_ESTIMATOR_GUIDE.md  # AI estimator guide
-    ├── JIRA_PROCESSOR_USER_GUIDE.md    # Batch processor API reference
-    ├── JIRA_CREATION_GUIDE.md          # Jira creation guide
-    └── ROADMAP.md                      # Project roadmap
+├── docs/                               # Documentation
+│   ├── IMPACT_SCORE_MODEL.md           # Scoring model specification
+│   ├── IMPACT_SCORE_VISUAL_GUIDE.md    # Visual diagrams and examples
+│   ├── INTELLIGENT_ESTIMATOR_GUIDE.md  # AI estimator guide
+│   ├── JIRA_PROCESSOR_USER_GUIDE.md    # Batch processor API reference
+│   ├── JIRA_CREATION_GUIDE.md          # Jira creation guide
+│   ├── ROADMAP.md                      # Project roadmap
+│   └── pdfs/                           # Example PDFs and templates
+└── examples/                           # Generated examples and outputs
+    ├── corrected_rca_description.txt   # Ready-to-use RCA description
+    ├── azure_*_rca.json                # Example RCA data files
+    └── example_*_ticket.json           # Example ticket data files
+```
+
+## 🔄 RCA Automation Workflow
+
+### **Complete RCA Creation Process**
+
+1. **📄 PDF Analysis**: Analyze multiple Zendesk and Jira PDFs to extract key information
+2. **🕐 Timestamp Extraction**: Identify start/end times and resolution methods for each cluster
+3. **📝 Summary Generation**: Create comprehensive incident summary and timeline
+4. **🎯 Root Cause Analysis**: Generate initial root cause analysis based on PDF content
+5. **📋 Action Items**: Extract and categorize action items from all sources
+6. **🔗 RCA Ticket Creation**: Generate complete RCA ticket with all auto-populated fields
+
+### **Multi-Cluster RCA Example**
+```bash
+# Generate complete RCA for multi-cluster incident
+python src/generate_complete_rca.py \
+  --customer "Azure Customer" \
+  --date "10/24/2025" \
+  --zendesk-pdfs "docs/pdfs/Support Tickets/*.pdf" \
+  --jira-pdfs "docs/pdfs/Jiras/*.pdf" \
+  --clusters "prod110-europe-hdc-europe-cp102-titan2.northeurope,rediscluster-ktcsproda11.eastus2" \
+  --regions "northeurope,eastus2" \
+  --components "DMC"
 ```
 
 ## 🚀 Quick Start
@@ -48,7 +97,7 @@ impact-score-calculator/
 ```bash
 # Clone the repository
 git clone <your-repo-url>
-cd jira-impact-score-toolkit
+cd jira-helper
 
 # Install dependencies
 pip install -r requirements.txt
@@ -56,7 +105,31 @@ pip install -r requirements.txt
 
 ### Usage
 
-#### Option 1: Intelligent Auto-Estimation (Recommended)
+#### **RCA Automation (New!)**
+
+```bash
+# Create RCA ticket from Zendesk PDFs
+python src/create_rca_ticket.py \
+  --customer "Azure Customer" \
+  --date "10/24/2025" \
+  --zendesk-tickets "146983,146173,146404" \
+  --related-bugs "RED-172734,RED-172012" \
+  --bug-jira-file "docs/pdfs/Jiras/[#RED-172012] Azure_ DMCproxy stuck at High CPU utilisation.pdf"
+
+# Generate complete multi-cluster RCA
+python src/generate_complete_rca.py \
+  --customer "Azure Customer" \
+  --date "10/24/2025" \
+  --zendesk-pdfs "docs/pdfs/Support Tickets/*.pdf" \
+  --jira-pdfs "docs/pdfs/Jiras/*.pdf" \
+  --clusters "prod110-europe-hdc-europe-cp102-titan2.northeurope,rediscluster-ktcsproda11.eastus2" \
+  --regions "northeurope,eastus2" \
+  --components "DMC"
+```
+
+#### **Impact Score Calculation**
+
+##### Option 1: Intelligent Auto-Estimation (Recommended)
 
 ```bash
 # Analyze Jira PDF export
