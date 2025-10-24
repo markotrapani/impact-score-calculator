@@ -1,0 +1,211 @@
+{
+  "incident_summary": "**Incident Overview:**\nThis incident affected multiple Azure clusters and resulted in 3 support tickets and 2 bug Jiras.\n**Primary Component:** Redis, DMC\n**Affected Caches:** rediscluster-ktcsproda11\n**Affected Regions:** eastus2\n**Average Impact Score:** 38.7",
+  "incident_timeline": "**Incident Timeline:**\nMMM-DD-YYYY, HH:MM - Initial reports received\nMMM-DD-YYYY, HH:MM - Multiple clusters affected\nMMM-DD-YYYY, HH:MM - Root cause identified\nMMM-DD-YYYY, HH:MM - Mitigation implemented\nMMM-DD-YYYY, HH:MM - Incident resolved",
+  "root_cause_analysis": "**Initial Root Cause Analysis:**\n- High CPU utilization detected in 4 tickets\n- Audit logging issues identified in 2 tickets\n- Connection problems reported in 2 tickets\n\n**Preliminary Analysis:**\nThe incident appears to be related to DMC component issues affecting multiple Azure clusters. \nCommon symptoms include high CPU utilization, audit logging problems, and connection issues.\nFurther investigation is needed to determine the root cause and implement preventive measures.",
+  "action_items": [
+    {
+      "description": "Investigate Redis component issues across all affected clusters",
+      "type": "Investigate",
+      "owner": "@name",
+      "ticket": "<jira-ticket>",
+      "priority": "High"
+    },
+    {
+      "description": "Investigate DMC component issues across all affected clusters",
+      "type": "Investigate",
+      "owner": "@name",
+      "ticket": "<jira-ticket>",
+      "priority": "High"
+    },
+    {
+      "description": "Review audit logging configuration and performance",
+      "type": "Investigate",
+      "owner": "@name",
+      "ticket": "<jira-ticket>",
+      "priority": "High"
+    },
+    {
+      "description": "Implement CPU monitoring and alerting improvements",
+      "type": "Prevent",
+      "owner": "@name",
+      "ticket": "<jira-ticket>",
+      "priority": "Medium"
+    },
+    {
+      "description": "Document incident response procedures for multi-cluster issues",
+      "type": "Mitigate",
+      "owner": "@name",
+      "ticket": "<jira-ticket>",
+      "priority": "Medium"
+    }
+  ],
+  "affected_components": [
+    "Redis",
+    "DMC"
+  ],
+  "affected_environments": [
+    "Azure"
+  ],
+  "cache_information": [
+    {
+      "cache_name": "rediscluster-ktcsproda11",
+      "region": "eastus2"
+    }
+  ],
+  "impact_scores": [
+    42.0,
+    42.0,
+    32.0
+  ],
+  "analyzed_tickets": [
+    {
+      "type": "zendesk",
+      "file": "docs/pdfs/Support Tickets/redislabs.zendesk.com_tickets_146983_print.pdf",
+      "ticket_id": "Unknown",
+      "summary": null,
+      "description": "#146983 High server load on the cache csgb-fsp-linx01-redis02 - UK south & csie-fnp-linx01-redis03\nSubmitted\nOctober 17, 2025 at 09:02\n \nReceived via\nWeb Form\n \nRequester\nLochana Chilakapati <v-clochana@microsoft.com>\nCCs\nIlya Berent <ilya@redis.com>, Marko Trapani <marko.trapani@redis.com>, Nathan Mann <nathan.mann@redis.com>, Redissreinternal <redissreinternal@microsoft.com>,\nRiya Simon <riyasimon@microsoft.com>, Samiran Saha <samiran.saha@microsoft.com>\nStatus\nOpen\n \nType\n-\n \nPriority\nNormal\n \nGroup\nSupport - L3\n \nAssignee\nMarko Trapani\nProduct Line\nPartner::Azure(ACRE)\n \nSeverity\nNormal\n \nTicket Status\nTroubleshooting\n \nJira Ticket IDs\nRED-172734;RED-172012\n \nThis is a production environment\nYes\n \nLast known assignee\n8590568563474\n \nProduct\nRedis Cloud\nIssue Type - Cloud\nTechnical Issue\n \nFocus Score\n1\n \nTicket Location\nUS & Canada\n \nTicket Clusters\ncsgb-fsp-linx01-redis02.uksouth csie-fnp-linx01-redis03.northeurope\nLochana Chilakapati October 17, 2025 at 09:02\nThe customer shared ",
+      "impact_score": 42.0,
+      "priority": "LOW",
+      "components": {
+        "impact_severity": {
+          "score": 22,
+          "reason": "General issue keywords found"
+        },
+        "customer_arr": {
+          "score": 10,
+          "reason": "Customer mentioned but ARR unknown"
+        },
+        "sla_breach": {
+          "score": 0,
+          "reason": "ACRE detected - Azure owns SLA (always 0 points)"
+        },
+        "frequency": {
+          "score": 0,
+          "reason": "No clear frequency indicators, assuming single occurrence"
+        },
+        "workaround": {
+          "score": 10,
+          "reason": "No clear workaround information, assuming complex workaround needed"
+        },
+        "rca_action_item": {
+          "score": 0,
+          "reason": "No RCA action item indicators found (current incident or no RCA)"
+        },
+        "support_multiplier": 0.0,
+        "account_multiplier": 0.0
+      },
+      "cache_info": {},
+      "component": "Redis",
+      "environment": "Azure"
+    },
+    {
+      "type": "zendesk",
+      "file": "docs/pdfs/Support Tickets/redislabs.zendesk.com_tickets_146173_print.pdf",
+      "ticket_id": "Unknown",
+      "summary": null,
+      "description": "#146173 [rediscluster-ktcsproda11] [East US 2] [Need reason on\nwhy there is increase in dmc proxy on 10/01 21:30 UTC]\nSubmitted\nOctober 7, 2025 at 19:25\n \nReceived via\nWeb Form\n \nRequester\nVishnu Devireddy <v-vdevireddy@microsoft.com>\nCCs\nIlya Berent <ilya@redis.com>, Nathan Mann <nathan.mann@redis.com>, Redissreinternal\n<redissreinternal@microsoft.com>\nStatus\nOpen\n \nType\n-\n \nPriority\nNormal\n \nGroup\nSupport - L3\n \nAssignee\nAbhay Pandey\nProduct Line\nPartner::Azure(ACRE)\n \nSeverity\nNormal\n \nTicket Status\nTroubleshooting\n \nJira Ticket IDs\nRED-172012\n \nLast known assignee\n1904650178474\nIssue Date\nOctober 1, 2025\n \nProduct\nRedis Software\n \nRedis Enterprise Version\n7.4\n \nIssue Type - Software\nTechnical Issue\n \nIssue Time\n21:30\nFocus Score\n1\n \nTicket Location\nAPAC\n \nTicket Clusters\nrediscluster-ktcsproda11.eastus2\nVishnu Devireddy October 7, 2025 at 19:25\nCustomer issue:\nCustomer observed increase in CPU from 10/01 21:30 UTC\nInvestigation:\nWe have observed correlation between increase in CPU ",
+      "impact_score": 42.0,
+      "priority": "LOW",
+      "components": {
+        "impact_severity": {
+          "score": 22,
+          "reason": "General issue keywords found"
+        },
+        "customer_arr": {
+          "score": 10,
+          "reason": "Customer mentioned but ARR unknown"
+        },
+        "sla_breach": {
+          "score": 0,
+          "reason": "ACRE detected - Azure owns SLA (always 0 points)"
+        },
+        "frequency": {
+          "score": 0,
+          "reason": "No clear frequency indicators, assuming single occurrence"
+        },
+        "workaround": {
+          "score": 10,
+          "reason": "No clear workaround information, assuming complex workaround needed"
+        },
+        "rca_action_item": {
+          "score": 0,
+          "reason": "No RCA action item indicators found (current incident or no RCA)"
+        },
+        "support_multiplier": 0.0,
+        "account_multiplier": 0.0
+      },
+      "cache_info": {},
+      "component": "DMC",
+      "environment": "Azure"
+    },
+    {
+      "type": "zendesk",
+      "file": "docs/pdfs/Support Tickets/redislabs.zendesk.com_tickets_146404_print.pdf",
+      "ticket_id": "Unknown",
+      "summary": null,
+      "description": "#146404 One instance of Redis cache enterprise prod110-europe-\nhdc-europe-cp102-titan2 is showing 100% CPU max usage\nSubmitted\nOctober 9, 2025 at 14:53\n \nReceived via\nWeb Form\n \nRequester\nSomya Gupta <v-guptasomya@microsoft.com>\nCCs\nIlya Berent <ilya@redis.com>, Nathan Mann <nathan.mann@redis.com>\nStatus\nOn-hold\n \nType\n-\n \nPriority\nNormal\n \nGroup\nSupport - L3\n \nAssignee\nMichael Thompson\nProduct Line\nPartner::Azure(ACRE)\n \nSeverity\nNormal\n \nTicket Status\nTroubleshooting\n \nJira Ticket IDs\nRED-172734\n \nThis is a production environment\nYes\nLast known assignee\n392601123959\n \nIssue Date\nOctober 8, 2025\n \nProduct\nRedis Cloud\n \nIssue Type - Cloud\nTechnical Issue\n \nFocus Score\n1\nTicket Location\nUS & Canada\nTicket Clusters\nprod110-europe-hdc-europe-cp102-titan2-dr.westeurope prod110-europe-hdc-europe-cp102-titan2.northeurope\nSomya Gupta October 9, 2025 at 14:53\nWe have a sev3 CRI Incident 696068686 : 2510080040011683 :prod110-europe-hdc-europe-cp102-titan2\n[NorthEurope] [One instance of Redis ca",
+      "impact_score": 32.0,
+      "priority": "LOW",
+      "components": {
+        "impact_severity": {
+          "score": 22,
+          "reason": "General issue keywords found"
+        },
+        "customer_arr": {
+          "score": 0,
+          "reason": "No customer information found, assuming single low ARR"
+        },
+        "sla_breach": {
+          "score": 0,
+          "reason": "ACRE detected - Azure owns SLA (always 0 points)"
+        },
+        "frequency": {
+          "score": 0,
+          "reason": "No clear frequency indicators, assuming single occurrence"
+        },
+        "workaround": {
+          "score": 10,
+          "reason": "No clear workaround information, assuming complex workaround needed"
+        },
+        "rca_action_item": {
+          "score": 0,
+          "reason": "No RCA action item indicators found (current incident or no RCA)"
+        },
+        "support_multiplier": 0.0,
+        "account_multiplier": 0.0
+      },
+      "cache_info": {},
+      "component": "Redis",
+      "environment": "Azure"
+    }
+  ],
+  "analyzed_bugs": [
+    {
+      "type": "jira",
+      "file": "docs/pdfs/Jiras/[#RED-172012] Azure_ DMCproxy stuck at High CPU utilisation.pdf",
+      "ticket_id": null,
+      "summary": null,
+      "description": "1. Bug Description:\n2. Which components impacted by this bug?\n3. What was fixed?\n4. Reproduction steps?\n5. Public Blocker Description:\n------------------------------\nReported\nVersion/Build:\n7.20.0-136125620390\nZendesk ID/s:\n146173,146983\nImpact Score\ndetails:\nOld:\nNew (with new ZD/Jira tickets accounted for):\n\u00a0Description\u00a0 \u00a0\nCache name: rediscluster-ktcsproda11\nRegion: eastus2\nDMC was Stuck in High CPU utilisation starting around 21:22 on 1 Oct.\nI can see an update bdb SM at this time, but there are no event logs.\n10/24/25, 10:31 AM\n[#RED-172012] Azure: DMCproxy stuck at High CPU utilisation\nhttps://redislabs.atlassian.net/si/jira.issueviews:issue-html/RED-172012/RED-172012.html\n1/4\n2025-10-01 21:22:16,491 INFO sm_event_logger StateMachineHandler1: === [bdb:1] STATEMACHINE [SMUpdateBDB] STARTED ===\n2025-10-01 21:22:16,492 INFO sm_event_logger StateMachineHandler1: === [bdb:1] Action uid: e7cad1e6-1b31-4d2f-9e64-afb20d0f294c ===\n2025-10-01 21:22:16,494 INFO sm_event_logger StateMachineHandler1: === [bdb:1] Parameters: updates=:params=pause_persistence=False\n...\n2025-10-01 21:23:03,977 INFO sm_event_logger StateMachineHandler1: === [bdb:1] STATEMACHINE [SMUpdateBDB] ENDED SUCCESSFULLY ===\n2025-10-01 21:23:03,980 INFO sm_event_logger StateMachineHandler1: SMUpdateBDB: bdb:1[config_redis_acl]: state done.\nThere are also some API calls which indicate that there were some changes related to connection auditing.\n[2025-10-01T21:22:16.416Z] \"PUT /v1/bdbs/1 HTTP/1.1\" 200 - 517 17724 2082 2082 \"10.200.0.123\" \"-\" \"fac2f2ea-774f-4f28-a00d-a4f928969c45\" \n\"127.0.0.1:9443\" \"127.0.0.1:9080\"\n[2025-10-01T21:22:18.502Z] \"POST /v1/bdbs/1/command HTTP/1.1\" 200 - 63 18 9 9 \"10.200.0.123\" \"-\" \"df69c297-0555-47ca-81ee-ed1cb1c19d8c\" \n\"127.0.0.1:9443\" \"127.0.0.1:9080\"\n[2025-10-01T21:22:18.512Z] \"GET /v1/actions/e7cad1e6-1b31-4d2f-9e64-afb20d0f294c HTTP/1.1\" 200 - 0 141 7 7 \"10.200.0.123\" \"-\" \"2d881939-a325-44ee-\n8b4f-5685f2296696\" \"127.0.0.1:9443\" \"127.0.0.1:9080\"\n[2025-10-01T21:22:18.520Z] \"GET /v1/bdbs HTTP/1.1\" 200 - 0 17622 8 8 \"10.200.0.123\" \"-\" \"45a994a8-046a-4518-add8-ba296c870bd0\" \"127.0.0.1:9443\" \n\"127.0.0.1:9080\"\n[2025-10-01T21:22:18.531Z] \"DELETE /v1/cluster/auditing/db_conns HTTP/1.1\" 200 - 0 0 16 16 \"10.200.0.123\" \"-\" \"14fc8bd9-4a1a-4251-be75-72583f5c00d1\" \n\"127.0.0.1:9443\" \"127.0.0.1:9080\"\n[2025-10-01T21:22:43.756Z] \"GET /v1/cluster/auditing/db_conns HTTP/1.1\" 200 - 0 103 8 8 \"10.200.0.123\" \"-\" \"7c774330-49de-47a7-9a56-6135e93957b6\" \n\"127.0.0.1:9443\" \"127.0.0.1:9080\"\n[2025-10-01T21:22:43.769Z] \"PUT /v1/cluster/auditing/db_conns HTTP/1.1\" 200 - 133 134 13 13 \"10.200.0.123\" \"-\" \"5bfb4a16-3ac0-409e-8cd5-b871c5e730e7\" \n\"127.0.0.1:9443\" \"127.0.0.1:9080\"\n[2025-10-01T21:22:43.783Z] \"GET /v1/cluster/auditing/db_conns HTTP/1.1\" 200 - 0 134 8 8 \"10.200.0.123\" \"-\" \"535aa3a7-c041-425f-a985-5c0ff6b61b39\" \n\"127.0.0.1:9443\" \"127.0.0.1:9080\"\n[2025-10-02T18:59:04.922Z] \"DELETE /v1/cluster/auditing/db_conns HTTP/1.1\" 200 - 0 0 22 21 \"10.200.0.123\" \"-\" \"6a4778c2-9f9f-42fa-a9e8-e0f60322f2b8\" \n\"127.0.0.1:9443\" \"127.0.0.1:9080\"\nBefore DMC restarts I can see auditing related error audit 0x7fd6c9487040 socket disconnected and error:00000005:lib: The audit errors vanish after\nrestart and DMC utilisation came down as well\n91277) 2025-10-03 04:26:17.243 [1374348] INF dmc.audit (disconnected@dmc_audit.cpp:234) - audit 0x7fd6c9487040 socket disconnected\n91278) 2025-10-03 04:26:17.243 [1374347] INF dmc.audit (disconnected@dmc_audit.cpp:234) - audit 0x7fd6d2021140 socket disconnected\n...\n91292) 2025-10-03 04:26:28.252 [3942] INF dmc.audit (disconnected@dmc_audit.cpp:234) - audit 0x7fd6d40291c0 socket disconnected\n91293) 2025-10-03 04:26:28.304 [3940] INF dmc.audit (disconnected@dmc_audit.cpp:234) - audit 0x7fd6b5f9e040 socket disconnected\n91294) 2025-10-03 04:26:29.688 [3940] WRN dmc.conn (disconnected_callback_ssl@io_conn.cpp:1751) - Received error event in ssl connection [cconn: \ncconn:406182, bdb:1, port=10000 locality=global, client_name=, address=0x7fd6b4ada2c0, 4.152.100.121:5250->10.0.0.7:10000] at {0x7fd6b6207570}: \nerror:00000005:lib(0):func(0):DH lib.app_conn=0x7fd6b4ada2c0, no hold-read, buffer event=0x7fd6b4a55080, conn_type: 1 ( ...this message was skipped \n18 times in the past 10 seconds.)\n91295) 2025-10-03 04:26:37.404 [2235] WRN ifr.gnrl (signal_handler_specific@dmcproxy.cpp:216) - Intercepted SIGTERM, shutting down dmcproxy.\n91296) 2025-10-03 04:26:38.376 [3888] INF dmc.mgmt (remove_pre_run_syncer_or_schedule_termination@dmc_syncers_mgmt.c:323) - Syncer state: SYNCER_RUN \ntermination_state: SYNCER_TO_BE_SHUTDOWN\n91297) 2025-10-03 04:26:38.376 [3888] INF dmc.mgmt (remove_pre_run_syncer_or_schedule_termination@dmc_syncers_mgmt.c:335) - Setting state\n91298) 2025-10-03 04:26:38.376 [3888] INF dmc.mgmt (check_single_syncer@dmc_syncers_mgmt.c:829) - sInfo bdb:1 type=crdt pid=1374486 changed state \nSYNCER_RUN->SYNCER_TO_BE_SHUTDOWN or status SYNCER_IS_RUNNING->SYNCER_IS_RUNNING\n91299) 2025-10-03 04:26:38.376 [3888] INF ifr.gnrl (send_signal_to_syncer@dmc_syncers_mgmt.c:642) - Sending Terminated to child syncer (crdt) process \n1374486 of bdb:1\n91300) 2025-10-03 04:26:39.244 [1374348] INF dmc.audit (disconnected@dmc_audit.cpp:234) - audit 0x7fd6c9487040 socket disconnected\n1) 2025-10-03 04:26:40.000 [1494983] INF ifr.stats (listen@prometheus.cpp:346) - Exposing a stats endpoint on \n/var/opt/redislabs/run/dmcproxy_metrics_prometheus.sock\n2) 2025-10-03 04:26:40.000 [1494981] INF dmc.app (App@dmcproxy.cpp:965) - \n============================================================================\n3) 2025-10-03 04:26:40 000 [1494981] INF dmc app (App@dmcproxy cpp:966) - dmcproxy log\nmode=2\nfile=/var/opt/redislabs/log/dmcproxy log\nwork-dir=/\n\u00a0\nThese error started around:\n56927) 2025-10-01 21:22:19.727 [3937] INF dmc.audit (disconnected@dmc_audit.cpp:234) - audit 0x7fd6b759e040 socket disconnected\n56928) 2025-10-01 21:22:19.727 [3940] INF dmc.audit (disconnected@dmc_audit.cpp:234) - audit 0x7fd6b5f9e040 socket disconnected\n\u00a0\nIt seems to happen after disabling the auditing.\nWe can also see High CPU util on the node, coinciding with high CPU usage by DMC.\nIt\u2019s unclear what caused this, their usage seems fairly consistent.\nThe fact that s simple restart fixed the issue points to ward likelihood of this being a bug, hecne creating the Jira.\nLogs: s3://gt-logs/exa-to-gt/ZD-146173-RED-172012/debuginfo.DEF8BCDC19752D08.tar.gz\n\u00a0Comments\u00a0 \u00a0\nComment by Vladislav Morozov [ 19/Oct/25 ]\nNir Haroosh ,\nOverloaded. Moving this one to you.\nCould be related to https://redislabs.atlassian.net/browse/RED-172734\nPlease note, this is Azure.\nComment by Marko Trapani [ 22/Oct/25 ]\nHi Nir Haroosh ! Azure experienced another issue similar to this (ZD-146983).\nThis is at least the third occurrence of unexplained high dmcproxy CPU on ACRE clusters, all coinciding with audit-logging related messages in the dmc. Two geo-replicated\n10/24/25, 10:31 AM\n[#RED-172012] Azure: DMCproxy stuck at High CPU utilisation\nhttps://redislabs.atlassian.net/si/jira.issueviews:issue-html/RED-172012/RED-172012.html\n2/4\nClusters:\ncsgb-fsp-linx01-redis02.uksouth - Oct 7 @ 22:35 UTC (node:34/vm3)\ncsie-fnp-linx01-redis03.northeurope - Oct 8 @ 01:07 UTC (node:27/vm0)\nDetails:\nVersion: 7.20.0-136125620390\ndmcproxy CPU: ~114% sustained on a node with master shards\nSame log pattern: \"audit message can't be sent and must be dropped\"\nSelf-resolved after freeze event and failover (North Europe) and without intervention (UK South)\nSupport Packages:\nUK South: s3://gt-logs/exa-to-gt/ZD-146983-RED-172012/debuginfo.FDC41EF7F3967172_csgb-fsp-linx01-redis02.uksouth.tar.gz\nNorth Europe: s3://gt-logs/exa-to-gt/ZD-146983-RED-172012/debuginfo.B703F04B112853E9_csie-fnp-linx01-redis03.northeurope.tar.gz\nComment by Nathan Mann [ 23/Oct/25 ]\nFor the original issue at least, Azure Engineering have confirmed that the onset of symptoms appear to be preceded by a provisioning operation to update the database, an\n(fluentd) was restarted at that time:\nIs it possible that something in the DMC will consume CPU cycles until restart if we lose connection to the configured auditing destination port/socket unexpectedly?\nComment by Nathan Mann [ 23/Oct/25 ]\nSame situation for the most recent event:\n10/24/25, 10:31 AM\n[#RED-172012] Azure: DMCproxy stuck at High CPU utilisation\nhttps://redislabs.atlassian.net/si/jira.issueviews:issue-html/RED-172012/RED-172012.html\n3/4\nComment by Nathan Mann [ 24/Oct/25 ]\nRaised priority to High per Azure request, due to multiple occurrences and concern for more.\nGenerated at Fri Oct 24 17:31:18 UTC 2025 by Marko Trapani using Jira 1001.0.0-SNAPSHOT#100290-rev:1610d7720393766dbd0efb34f1c604648ad17eaf.\n10/24/25, 10:31 AM\n[#RED-172012] Azure: DMCproxy stuck at High CPU utilisation\nhttps://redislabs.atlassian.net/si/jira.issueviews:issue-html/RED-172012/RED-172012.html\n4/4",
+      "priority": "High",
+      "severity": "Unknown",
+      "component": "DMC",
+      "environment": "Azure",
+      "cache_info": {
+        "cache_name": "rediscluster-ktcsproda11",
+        "region": "eastus2"
+      }
+    },
+    {
+      "type": "jira",
+      "file": "docs/pdfs/Jiras/[#RED-172734] [RS][ACRE] High CPU usage from DMCProxy Process Not Associated with High Connections or Load.pdf",
+      "ticket_id": null,
+      "summary": null,
+      "description": "An Azure cache encountered high DMCProxy usage on a non-master node which had few\nconnections beginning on October 8th with no associated high connections or load increase.\n1. Bug Description:\n2. Which components impacted by this bug?\n3. What was fixed?\n4. Reproduction steps?\n5. Public Blocker Description:\n------------------------------\nReported Version/Build:\n7.20.0-136\nZendesk ID/s:\n146404,146983\nDowntime:\nNo\nData loss:\nNo\nData unavailable:\nNo\nImpact Score details:\n\u00a0Description\u00a0 \u00a0\nBeginning on October 8th around 01:05 UTC, the ACRE team began recording high CPU usage for the dmcproxy process on node:78 of one of their\nclusters:\n10/24/25, 11:32 AM\n[#RED-172734] [RS][ACRE] High CPU usage from DMCProxy Process Not Associated with High Connections or Load\nhttps://redislabs.atlassian.net/si/jira.issueviews:issue-html/RED-172734/RED-172734.html\n1/3\nOn review of the cluster logs, I was unable to locate any identifiable ongoing cause for high CPU usage. There is some indication of audit-related\nlogging towards the beginning of that period:\n35026) 2025-10-08 01:03:27.588 [3127419] INF dmc.audit (disconnected@dmc_audit.cpp:234) - audit 0x7e09ab884040 socket disconnected\n35027) 2025-10-08 01:03:27.588 [3127419] INF dmc.audit (disconnected@dmc_audit.cpp:234) - audit 0x7e09ab884040 socket disconnected\nHowever, no recurring logging was apparent. This high CPU usage does not appear to be affiliated with a change to the load on the database:\nAdditionally, a very limited number of clients were connected to the node during this period, as the majority were being directed to node:77:\n10/24/25, 11:32 AM\n[#RED-172734] [RS][ACRE] High CPU usage from DMCProxy Process Not Associated with High Connections or Load\nhttps://redislabs.atlassian.net/si/jira.issueviews:issue-html/RED-172734/RED-172734.html\n2/3\nThis elevated CPU usage persisted until a freeze event on October 10th, after which the CPU usage returned to nominal range.\nAdditional logs are being requested (both from post-event and from the other CRDB participant in case it's needed); however, cluster logs from during\nthis event have been uploaded to the following location: s3://gt-logs/exa-to-gt/ZD-146404-RED-\n172734/debuginfo.739F17021556862E.tar.gz\nThis case is being opened to determine why the DMC encountered high CPU usage on node:78.\n\u00a0Comments\u00a0 \u00a0\nComment by Michael Thompson [ 16/Oct/25 ]\nPost event logs have been uploaded to this link: s3://gt-logs/exa-to-gt/ZD-146404-RED-\n172734/debuginfo.334B2EDF16C408ED.tar.gz\nLogs from the other CRDB participant are here if needed: s3://gt-logs/exa-to-gt/ZD-146404-RED-\n172734/debuginfo.46C8E5C2310D3FE3.tar.gz\nComment by Vladislav Morozov [ 19/Oct/25 ]\nNir Haroosh ,\nOverloaded. Moving this one to you. Could be somehow related to https://redislabs.atlassian.net/browse/RED-172012\nPlease note, it is Azure.\nGenerated at Fri Oct 24 18:32:04 UTC 2025 by Marko Trapani using Jira 1001.0.0-SNAPSHOT#100290-\nrev:1610d7720393766dbd0efb34f1c604648ad17eaf.\n10/24/25, 11:32 AM\n[#RED-172734] [RS][ACRE] High CPU usage from DMCProxy Process Not Associated with High Connections or Load\nhttps://redislabs.atlassian.net/si/jira.issueviews:issue-html/RED-172734/RED-172734.html\n3/3",
+      "priority": "Medium",
+      "severity": "Unknown",
+      "component": "DMC",
+      "environment": "Azure",
+      "cache_info": {}
+    }
+  ]
+}
