@@ -430,4 +430,4 @@ For questions or issues:
 
 ---
 
-**Made with ❤️ for better Jira impact scoring**
+**Made with ❤️ for smoother Jira creation**
