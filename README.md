@@ -20,10 +20,12 @@ A comprehensive Python toolkit for Jira ticket management, impact score calculat
 
 ### **Advanced RCA Automation**
 - **PDF Summary Generation**: Analyze multiple Zendesk and Jira PDFs to generate comprehensive summaries
+- **RCA Jira Form Generator**: Generate complete RCA tickets in exact Jira form structure with proper field mapping
 - **Cluster-Specific Timestamps**: Extract and organize timestamps for each affected cluster
 - **Resolution Method Detection**: Distinguish between manual restarts and automatic VM freeze events
 - **Timeline Generation**: Create detailed incident timelines from PDF content
 - **Action Item Extraction**: Automatically identify and categorize action items
+- **Clean Output Formatting**: Professional RCA forms ready for copy/paste into Jira
 
 ### **Documentation & Examples**
 - **Comprehensive Documentation**: Detailed guides and scoring model reference
@@ -47,6 +49,7 @@ jira-helper/
 │   ├── create_rca_ticket.py            # Create RCA tickets from template
 │   ├── create_multi_cluster_rca.py     # Multi-cluster RCA creation
 │   ├── generate_rca_summary.py         # PDF analysis and summary generation
+│   ├── generate_rca_jira_form.py      # Generate RCA in exact Jira form structure
 │   ├── generate_complete_rca.py        # Complete RCA with auto-generated content
 │   ├── calculate_jira_scores.py        # Batch processor
 │   ├── estimate_impact_score.py        # Interactive single-ticket estimator
@@ -106,6 +109,29 @@ pip install -r requirements.txt
 ### Usage
 
 #### **RCA Automation (New!)**
+
+##### **RCA Jira Form Generator (Recommended)**
+
+```bash
+# Generate complete RCA in exact Jira form structure
+python src/generate_rca_jira_form.py \
+  --customer "Azure" \
+  --date "10/24/25" \
+  --zendesk-pdfs "docs/pdfs/Support Tickets/*.pdf" \
+  --jira-pdfs "docs/pdfs/Jiras/*.pdf" \
+  --clusters "prod110-europe-hdc-europe-cp102-titan2.northeurope" "rediscluster-ktcsproda11.eastus2" "csie-fnp-linx01-redis03.northeurope" "csgb-fsp-linx01-redis02.uksouth" \
+  --regions "northeurope" "eastus2" "uksouth" \
+  --components "DMC" \
+  --verbose
+```
+
+**Features:**
+- ✅ **Clean Output**: No duplications, professional formatting
+- ✅ **Proper Field Mapping**: Zendesk tickets, Jira bugs, ACRE cache links
+- ✅ **Timeline Generation**: Automatic incident timeline creation
+- ✅ **Ready for Jira**: Copy/paste directly into Jira form
+
+##### **Legacy RCA Creation**
 
 ```bash
 # Create RCA ticket from Zendesk PDFs
@@ -378,6 +404,14 @@ For questions or issues:
 - Review examples in `/examples`
 
 ## 🔄 Recent Updates
+
+**October 25, 2025:**
+- ✅ **NEW: RCA Jira Form Generator** - Generate complete RCA tickets in exact Jira form structure
+- ✅ **Fixed all duplication issues** - ACRE Cache Links, Zendesk tickets, Timeline Table
+- ✅ **Improved output formatting** - Clean, professional RCA forms ready for Jira
+- ✅ **Enhanced field mapping** - Proper Zendesk ticket links, Jira bug summaries
+- ✅ **Timeline positioning** - Timeline Table now appears immediately after Summary
+- ✅ **Removed verbose sections** - Clean Initial Root Cause, no meaningless Issue Links
 
 **October 14, 2025:**
 - ✅ Enhanced workaround detection for operational impact (12 pts)
