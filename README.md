@@ -373,20 +373,20 @@ WORKAROUND_KEYWORDS = {
 
 ## 🐛 Known Limitations
 
-1. **Customer ARR**: Script estimates based on keywords, manual input recommended
-2. **RCA Detection**: May flag RCA template as actual RCA content
-3. **Frequency**: Relies on keyword detection, may need manual adjustment
-4. **Single Ticket Focus**: Intelligent estimator processes one ticket at a time
+1. **Customer ARR**: Should be extracted from account tags in Zendesk tickets, not estimated
+2. **PDF Analysis**: Requires properly formatted PDFs for optimal extraction
+3. **Cluster Detection**: Manual cluster specification recommended for complex multi-cluster incidents
+4. **Timeline Accuracy**: Depends on timestamp format consistency in source PDFs
 
 ## 🤝 Contributing
 
 Contributions welcome! Areas for improvement:
 
-- Add support for more Jira field types
-- Improve ARR estimation with external data sources
-- Add ML-based component prediction
-- Create GUI interface
-- Add API endpoint wrapper
+- Extract ARR from Zendesk account tags automatically
+- Improve PDF timestamp parsing for better timeline accuracy
+- Add support for more PDF formats and structures
+- Create web-based UI for easier usage
+- Add direct Jira API integration for ticket creation
 
 ## 📝 License
 
