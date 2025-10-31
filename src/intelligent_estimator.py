@@ -431,44 +431,95 @@ class IntelligentImpactEstimator:
         return 0, '; '.join(reasons)
     
     def estimate_workaround(self) -> Tuple[int, str]:
-        """Estimate Workaround score (5-15 points)."""
+        """
+        Estimate Workaround score (5-15 points).
+
+        WORKAROUND ACCEPTANCE PRINCIPLE:
+        The score depends not just on workaround availability, but on whether the customer
+        has ACCEPTED the workaround. Conservative scoring philosophy: "err on the side of 15
+        if workaround has not been accepted by the customer."
+
+        Scoring Tiers (Official Confluence):
+        - 15 points: No workaround exists OR workaround suggested but NOT accepted
+        - 12 points: Workaround accepted, but has performance/operational impact
+        - 10 points: Workaround accepted, complex but no business impact
+        - 5 points:  Workaround accepted, simple with no business impact
+
+        Workaround States:
+        1. Suggested but unaccepted: Treat as "no workaround" (15 points)
+           - Engineer proposed solution in comments
+           - Customer has not confirmed they will use it
+           - Customer concerned about risks/side effects
+
+        2. Accepted with impact: Score 12 points
+           - Customer agreed to use workaround
+           - Causes performance degradation, operational burden, or data limitations
+           - Examples: manual data cleanup, reduced performance, operational complexity
+
+        3. Accepted, complex, no impact: Score 10 points
+           - Customer agreed to use workaround
+           - Requires significant effort but no ongoing impact
+           - Examples: configuration changes, code refactoring, migration steps
+
+        4. Accepted, simple, no impact: Score 5 points
+           - Customer agreed to use workaround
+           - Easy to implement, no drawbacks
+           - Examples: UI alternative, simple config change, feature toggle
+
+        Real-World Example (RED-174782):
+        - Issue: Terraform provider swaps regionId and TgwId in PUT requests
+        - Suggested workaround: Flip values in TF script (against best practices, could break things)
+        - Customer response: None (workaround not accepted)
+        - Score: 15 points (treated as "no workaround")
+        - Rationale: Workaround suggested but customer hasn't explicitly accepted it,
+                     and they expressed concerns about it breaking other things
+
+        NOTE: This method uses keyword detection from ticket description and workaround
+        field. Manual review may be needed for edge cases where acceptance is unclear.
+        """
         reasons = []
-        
+
         workaround_text = self.ticket_data.get('workaround') or ''
         desc = (self.ticket_data.get('description') or '') + ' ' + (self.ticket_data.get('summary') or '')
         combined = (workaround_text + ' ' + desc).lower()
-        
-        # Check for no workaround first
+
+        # Check for no workaround first (15 points)
+        # This includes cases where workaround is explicitly stated as not available
         if any(kw in combined for kw in self.WORKAROUND_KEYWORDS['none']):
             reasons.append("No workaround available, fix required")
             return 15, '; '.join(reasons)
-        
-        # Check if fix/patch is the only solution
+
+        # Check if fix/patch is the only solution (15 points)
+        # If fix/patch mentioned without workaround, assume no workaround exists
         if 'fix' in combined or 'patch' in combined or 'requires version' in combined:
             if 'workaround' not in combined:
                 reasons.append("Fix/patch required, no workaround")
                 return 15, '; '.join(reasons)
-        
-        # If workaround is explicitly mentioned, analyze it
+
+        # If workaround is explicitly mentioned, analyze acceptance and characteristics
         has_workaround = 'workaround' in combined or 'use instead' in combined or 'alternative' in combined
-        
+
         if has_workaround:
-            # Check for performance/operational impact
+            # Check for performance/operational impact (12 points)
+            # Keywords indicate workaround exists but causes degradation or burden
             if any(kw in combined for kw in self.WORKAROUND_KEYWORDS['with_impact']):
                 reasons.append("Workaround with performance/operational impact detected")
                 return 12, '; '.join(reasons)
-            
-            # Check for complexity
+
+            # Check for complexity (10 points)
+            # Keywords indicate workaround exists, is complex, but no ongoing impact
             elif any(kw in combined for kw in self.WORKAROUND_KEYWORDS['complex']):
                 reasons.append("Complex workaround found")
                 return 10, '; '.join(reasons)
-            
-            # Simple workaround
+
+            # Simple workaround (5 points)
+            # Workaround mentioned without complexity/impact indicators
             else:
                 reasons.append("Simple workaround found")
                 return 5, '; '.join(reasons)
-        
+
         # Check if workaround field is explicitly filled (but keyword not in description)
+        # This handles structured Jira fields where workaround documented separately
         if workaround_text and workaround_text.strip() and workaround_text.lower() not in ['nan', 'none', 'n/a']:
             # Analyze workaround field content
             if any(kw in workaround_text.lower() for kw in self.WORKAROUND_KEYWORDS['with_impact']):
@@ -480,8 +531,9 @@ class IntelligentImpactEstimator:
             else:
                 reasons.append("Workaround field populated")
                 return 10, '; '.join(reasons)
-        
-        # Default: unclear if workaround exists
+
+        # Default: unclear if workaround exists (conservative scoring = 10 points)
+        # When detection is uncertain, assume moderate complexity rather than scoring extremes
         reasons.append("No clear workaround information, assuming complex workaround needed")
         return 10, '; '.join(reasons)
     
