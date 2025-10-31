@@ -10,3 +10,26 @@ output/
 # Exception: Keep important example files that are part of the project
 !docs/example_bug_ticket.json
 !docs/example_rca_ticket.json
+
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# VSCode workspace files
+*.code-workspace
+
+# Temporary/working script versions
+*_fixed.py
+*_temp.py
+*_working.py
+
+# PDF documents (may contain sensitive customer data)
+*.pdf
