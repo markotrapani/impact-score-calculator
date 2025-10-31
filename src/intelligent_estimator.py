@@ -99,12 +99,13 @@ class IntelligentImpactEstimator:
     # RCA indicators
     RCA_KEYWORDS = ['rca', 'root cause', 'action item', 'post mortem', 'postmortem']
     
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str, manual_arr: Optional[str] = None):
         """Initialize with path to ticket export (PDF/Excel/XML/Word)."""
         self.file_path = Path(file_path)
         self.file_ext = self.file_path.suffix.lower()
         self.df = None
         self.ticket_data = {}
+        self.manual_arr = manual_arr  # User-provided ARR override
 
     def load_data(self):
         """Load ticket export data from any supported format."""
@@ -271,43 +272,76 @@ class IntelligentImpactEstimator:
         return 22, '; '.join(reasons)
     
     def estimate_customer_arr(self) -> Tuple[int, str]:
-        """Estimate Customer ARR score (0-15 points)."""
+        """
+        Estimate Customer ARR score (0-15 points).
+
+        Official Confluence Scoring:
+        - ARR > $1M: 15 points
+        - $1M > ARR > $500K: 13 points
+        - $500K > ARR > $100K: 10 points
+        - >10 low ARR customers: 8 points
+        - <10 low ARR customers: 5 points
+        - Single low ARR customer: 0 points
+        """
         reasons = []
-        
+
+        # If manual ARR override provided, use it
+        if self.manual_arr:
+            arr_scores = {
+                '100k-500k': 10,    # $500K > ARR > $100K (Confluence official)
+                '500k-1M': 13,      # $1M > ARR > $500K (Confluence official)
+                '1M-5M': 15,        # ARR > $1M (Confluence official)
+                '5M-10M': 15,       # ARR > $1M (Confluence official)
+                '10M+': 15,         # ARR > $1M (Confluence official)
+                'unknown': 0
+            }
+            score = arr_scores.get(self.manual_arr, 0)
+            reasons.append(f"Manual ARR override: {self.manual_arr} → {score} points (Confluence)")
+            return score, '; '.join(reasons)
+
         # Check for customer name (handle None values)
         customer = (self.ticket_data.get('customer_name') or '').lower()
-        desc = ((self.ticket_data.get('description') or '') + ' ' + 
+        desc = ((self.ticket_data.get('description') or '') + ' ' +
                 (self.ticket_data.get('summary') or '')).lower()
-        
-        # Check if VIP customer
+
+        # Check if VIP customer (ARR > $1M)
         for vip in self.VIP_CUSTOMERS:
             if vip.lower() in customer or vip.lower() in desc:
-                reasons.append(f"VIP customer '{vip}' identified")
+                reasons.append(f"VIP customer '{vip}' identified (ARR > $1M)")
                 return 15, '; '.join(reasons)
-        
-        # Check for multiple customers in description
-        if 'multiple customers' in desc or 'several customers' in desc:
-            reasons.append("Multiple customers mentioned")
-            return 8, '; '.join(reasons)
-        
-        # Check labels for customer indicators
+
+        # Check for multiple customers (low ARR)
+        multiple_customers_keywords = [
+            'multiple customers', 'several customers', 'many customers',
+            'numerous customers', 'various customers'
+        ]
+        if any(keyword in desc for keyword in multiple_customers_keywords):
+            # Try to determine if >10 or <10 customers
+            if any(word in desc for word in ['>10', 'more than 10', 'over 10', 'many', 'numerous']):
+                reasons.append(">10 low ARR customers mentioned")
+                return 8, '; '.join(reasons)
+            else:
+                reasons.append("<10 low ARR customers mentioned")
+                return 5, '; '.join(reasons)
+
+        # Check labels for customer tier indicators
         labels_str = ' '.join(self.ticket_data.get('labels', [])).lower()
         if 'enterprise' in labels_str or 'premium' in labels_str:
-            reasons.append("Enterprise/Premium labels found")
+            reasons.append("Enterprise/Premium labels found (likely $500K-$1M ARR)")
             return 13, '; '.join(reasons)
-        
-        # Check for subscription level
+
+        # Check for subscription level mentions
         if 'essentials' in desc or 'standard' in desc:
-            reasons.append("Standard subscription tier mentioned")
+            reasons.append("Standard subscription tier mentioned (likely $100K-$500K ARR)")
             return 10, '; '.join(reasons)
-        
-        # Check if customer is mentioned at all
+
+        # Check if single customer is mentioned
         if customer or 'customer' in desc:
-            reasons.append("Customer mentioned but ARR unknown")
-            return 10, '; '.join(reasons)
-        
-        # Default
-        reasons.append("No customer information found, assuming single low ARR")
+            reasons.append("Single customer mentioned, ARR unknown (assuming low ARR)")
+            return 0, '; '.join(reasons)
+
+        # Default: No customer information
+        reasons.append("No customer information found")
         return 0, '; '.join(reasons)
     
     def estimate_sla_breach(self) -> Tuple[int, str]:
@@ -587,11 +621,11 @@ class IntelligentImpactEstimator:
         print("INTELLIGENT IMPACT SCORE ESTIMATION")
         print("="*80)
         
-        issue_key = self.ticket_data.get('issue_key', 'Unknown')
-        summary = self.ticket_data.get('summary', '')
-        
+        issue_key = self.ticket_data.get('issue_key') or self.ticket_data.get('ticket_id') or 'Unknown'
+        summary = self.ticket_data.get('summary') or ''
+
         print(f"\nTicket: {issue_key}")
-        print(f"Summary: {summary[:70]}..." if len(summary) > 70 else f"Summary: {summary}")
+        print(f"Summary: {summary[:70]}..." if summary and len(summary) > 70 else f"Summary: {summary}")
         
         print("\n" + "-"*80)
         print("COMPONENT BREAKDOWN")
@@ -661,7 +695,13 @@ Examples:
         action='store_true',
         help='Show detailed ticket information'
     )
-    
+
+    parser.add_argument(
+        '--arr',
+        choices=['100k-500k', '500k-1M', '1M-5M', '5M-10M', '10M+', 'unknown'],
+        help='Customer ARR range (if not detected from ticket export). Use this when Zendesk PDF exports do not include ARR tags.'
+    )
+
     args = parser.parse_args()
     
     # Validate file exists
@@ -676,23 +716,56 @@ Examples:
     print(f"Format: {Path(args.file).suffix.upper()}\n")
     
     try:
-        # Initialize estimator
+        # Initialize estimator (without ARR for now)
         estimator = IntelligentImpactEstimator(args.file)
-        
+
         # Load data
         estimator.load_data()
-        
+
         # Extract ticket info
         print("\nExtracting ticket information...")
         ticket_info = estimator.extract_ticket_info()
-        
+
         if args.verbose:
             print("\nTicket Data:")
             for key, value in ticket_info.items():
                 if value:
                     display_val = str(value)[:100] + "..." if len(str(value)) > 100 else str(value)
                     print(f"  {key}: {display_val}")
-        
+
+        # Handle ARR - check if provided via CLI or prompt user
+        arr_value = args.arr
+        if not arr_value:
+            # Check if customer info exists in ticket
+            customer = ticket_info.get('customer_name') or ticket_info.get('customer')
+            if customer and customer not in ['None', 'N/A', '-', '']:
+                print(f"\n⚠️  Customer detected: {customer}")
+                print("⚠️  ARR information may not be available in PDF exports.")
+                print("    If you know the customer ARR range, please provide it for accurate scoring.")
+                print("\nAvailable ARR ranges:")
+                print("  1) 100k-500k")
+                print("  2) 500k-1M")
+                print("  3) 1M-5M")
+                print("  4) 5M-10M")
+                print("  5) 10M+")
+                print("  6) unknown (skip)")
+
+                choice = input("\nEnter number (1-6) or press Enter to skip: ").strip()
+                arr_map = {
+                    '1': '100k-500k',
+                    '2': '500k-1M',
+                    '3': '1M-5M',
+                    '4': '5M-10M',
+                    '5': '10M+',
+                    '6': 'unknown'
+                }
+                arr_value = arr_map.get(choice)
+                if arr_value:
+                    print(f"✓ Using ARR: {arr_value}\n")
+
+        # Set manual ARR on estimator
+        estimator.manual_arr = arr_value
+
         # Estimate components
         print("\nEstimating impact score components...")
         components = estimator.estimate_all_components()

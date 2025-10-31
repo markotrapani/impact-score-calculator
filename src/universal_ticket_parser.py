@@ -95,16 +95,27 @@ class UniversalTicketParser:
 
     def _is_zendesk_pdf(self) -> bool:
         """Detect if PDF is from Zendesk."""
-        zendesk_indicators = [
-            'Ticket #', 'Requester:', 'Zendesk', 'Status:', 'Priority:',
-            'Assignee:', 'Created:', 'Updated:'
-        ]
-
         text_lower = self.raw_text.lower()
-        matches = sum(1 for indicator in zendesk_indicators if indicator.lower() in text_lower)
 
-        # If 4+ indicators match, likely Zendesk
-        return matches >= 4
+        # Check for strong Jira indicators first (to avoid false positives)
+        jira_indicators = [
+            'project:', 'issue type:', 'fix versions:', 'affects versions:',
+            'resolution:', 'components:', 'sprint:'
+        ]
+        jira_matches = sum(1 for indicator in jira_indicators if indicator in text_lower)
+
+        # If we find 3+ Jira indicators, it's definitely Jira
+        if jira_matches >= 3:
+            return False
+
+        # Check for Zendesk-specific indicators
+        zendesk_indicators = [
+            'ticket #', 'requester:', 'submitted', 'received via'
+        ]
+        zendesk_matches = sum(1 for indicator in zendesk_indicators if indicator in text_lower)
+
+        # If 3+ Zendesk indicators match and no strong Jira indicators, likely Zendesk
+        return zendesk_matches >= 3
 
     def _parse_zendesk_pdf(self) -> Dict:
         """Parse Zendesk PDF export."""
@@ -165,8 +176,8 @@ class UniversalTicketParser:
         self.source_type = 'jira'
         data = {
             'source': 'jira',
-            'issue_key': self._extract_jira_field(r'Issue Key:\s*([A-Z]+-\d+)'),
-            'summary': self._extract_jira_field(r'Summary:\s*(.+)'),
+            'issue_key': self._extract_jira_field(r'Issue Key:\s*([A-Z]+-\d+)') or self._extract_jira_issue_key_from_title(),
+            'summary': self._extract_jira_field(r'Summary:\s*(.+)') or self._extract_jira_summary_from_title(),
             'description': self._extract_jira_description(),
             'priority': self._extract_jira_field(r'Priority:\s*(\w+)'),
             'severity': self._extract_jira_field(r'Severity:\s*(.+)'),
@@ -209,14 +220,46 @@ class UniversalTicketParser:
             r'Customer:\s*(.+)',
             r'Account:\s*(.+)',
             r'Organization:\s*(.+)',
-            r'Company:\s*(.+)'
+            r'Company:\s*(.+)',
+            r'Affected Organizations?:\s*(.+)',
+            r'Seen by Customers?:\s*(.+)'
         ]
 
         for pattern in patterns:
             match = re.search(pattern, self.raw_text, re.IGNORECASE)
             if match:
-                return match.group(1).strip()
+                customer = match.group(1).strip()
+                # Clean up common noise
+                if customer and customer not in ['None', 'N/A', '-', '']:
+                    return customer
 
+        return None
+
+    def _extract_jira_issue_key_from_title(self) -> Optional[str]:
+        """
+        Extract issue key from title line format.
+        Format: [RED-174782] Title text Created: ...
+        """
+        # Match [KEY-NUMBER] at start of first line
+        match = re.search(r'^\[?([A-Z]+-\d+)\]?', self.raw_text, re.MULTILINE)
+        if match:
+            return match.group(1).strip()
+        return None
+
+    def _extract_jira_summary_from_title(self) -> Optional[str]:
+        """
+        Extract summary from title line format.
+        Format: [RED-174782] Title text Created: ...
+        """
+        # Match text between [KEY-NUMBER] and 'Created:' (allow newlines in title)
+        match = re.search(r'\[([A-Z]+-\d+)\]\s+(.+?)\s+Created:', self.raw_text, re.IGNORECASE | re.DOTALL)
+        if match:
+            summary = match.group(2).strip()
+            # Remove newlines and multiple spaces
+            summary = re.sub(r'\s+', ' ', summary)
+            # Clean up common noise (Updated:, Status:, etc.)
+            summary = re.sub(r'\s+(Updated|Status|Priority):.*$', '', summary, flags=re.IGNORECASE)
+            return summary
         return None
 
     def _parse_excel(self) -> Dict:
