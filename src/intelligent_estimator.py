@@ -194,18 +194,63 @@ class IntelligentImpactEstimator:
     def estimate_impact_severity(self) -> Tuple[int, str]:
         """Estimate Impact & Severity score (0-38 points)."""
         reasons = []
-        
+
         # Get description and summary for context analysis
-        desc = ((self.ticket_data.get('description') or '') + ' ' + 
-                (self.ticket_data.get('summary') or '')).lower()
-        
-        # First, check for P4 indicators (monitoring/reporting issues, not service degradation)
+        # Include raw_text for Zendesk tickets where description may be truncated
+        desc = ((self.ticket_data.get('description') or '') + ' ' +
+                (self.ticket_data.get('summary') or '') + ' ' +
+                (self.ticket_data.get('raw_text') or '')[:5000]).lower()  # Limit raw_text to 5000 chars
+
+        # First, check for P5/Trivial indicators (cosmetic/visual issues)
+        trivial_indicators = [
+            'cosmetic', 'visual oddities', 'visual', 'whitespace', 'logo',
+            'pop-in', 'ui oddities', 'layout', 'styling', 'css', 'visual bug',
+            'visual issue', 'display issue', 'formatting', 'alignment',
+            'spacing', 'visual glitch', 'ui polish', 'aesthetics'
+        ]
+
+        # Check if this is purely cosmetic/visual (P5)
+        is_cosmetic_issue = any(indicator in desc for indicator in trivial_indicators)
+
+        # Check for functional impact keywords (if present, it's NOT just cosmetic)
+        functional_impact_keywords = [
+            'cannot', 'unable', 'blocked', 'broken', 'fails', 'error',
+            'crash', 'data loss', 'performance', 'slow', 'timeout'
+        ]
+        has_functional_impact = any(keyword in desc for keyword in functional_impact_keywords)
+
+        # If cosmetic AND no functional impact, it's P5/Trivial
+        if is_cosmetic_issue and not has_functional_impact:
+            reasons.append("Cosmetic/visual issue with no functional impact (P5/Trivial)")
+            return 8, '; '.join(reasons)
+
+        # Check for P2/High indicators (service crash/complete failure)
+        p2_crash_indicators = [
+            'fatal', 'spawn error', 'service crashed', 'service down',
+            'supervisorctl', 'process not running', 'service failed',
+            'exited too quickly', 'healthchecks failing', 'patching blocked',
+            'service stopping', 'cannot start', 'failed to start',
+            'critical service', 'control plane', 'all nodes down'
+        ]
+
+        # Check if this is a service crash (P2/High)
+        is_service_crash = any(indicator in desc for indicator in p2_crash_indicators)
+
+        # Check for data plane impact (if present, it's P1, not P2)
+        data_plane_impact = any(kw in desc for kw in ['database down', 'data loss', 'outage', 'cluster down'])
+
+        # If service crash but NOT data plane, it's P2/High
+        if is_service_crash and not data_plane_impact:
+            reasons.append("Service crash/failure detected (P2/High - control plane degradation)")
+            return 30, '; '.join(reasons)
+
+        # Check for P4 indicators (monitoring/reporting issues, not service degradation)
         p4_indicators = [
             'metric', 'metrics', 'monitoring', 'prometheus', 'grafana',
             'alert', 'alerting', 'false alert', 'reporting',
             'dashboard', 'visualization', 'observability'
         ]
-        
+
         # Check if this is a monitoring/metrics issue (P4) vs actual service issue
         is_monitoring_issue = any(indicator in desc for indicator in p4_indicators)
         
@@ -385,7 +430,8 @@ class IntelligentImpactEstimator:
             return 8, '; '.join(reasons)
         
         # Check status/labels for severity
-        if self.ticket_data.get('priority', '').lower() in ['blocker', 'critical', 'highest']:
+        priority = self.ticket_data.get('priority') or ''
+        if priority and priority.lower() in ['blocker', 'critical', 'highest']:
             reasons.append("Critical priority suggests potential SLA breach")
             return 8, '; '.join(reasons)
         
@@ -395,10 +441,26 @@ class IntelligentImpactEstimator:
     def estimate_frequency(self) -> Tuple[int, str]:
         """Estimate Frequency score (0-16 points)."""
         reasons = []
-        
-        desc = ((self.ticket_data.get('description') or '') + ' ' + 
+
+        desc = ((self.ticket_data.get('description') or '') + ' ' +
                 (self.ticket_data.get('summary') or '')).lower()
-        
+
+        # Check for systemic issues affecting all users/instances
+        systemic_indicators = [
+            'all users', 'everyone', 'every user', 'all instances',
+            'all deployments', 'affects version', 'affects all',
+            'every deployment', 'all environments', 'every instance',
+            'systemic', 'widespread', 'global issue', 'affects everyone'
+        ]
+
+        # Check for version-specific issues (e.g., "v8.0.X", "version 8.0")
+        version_pattern = r'v\d+\.\d+|version \d+\.\d+'
+
+        # If it's a systemic issue or version-specific bug, it affects multiple users
+        if any(indicator in desc for indicator in systemic_indicators) or re.search(version_pattern, desc):
+            reasons.append("Systemic issue affecting all users/instances of a version")
+            return 16, '; '.join(reasons)
+
         # Check for explicit frequency mentions
         if re.search(r'(\d+)\s*times', desc) or re.search(r'(\d+)\s*occurrences', desc):
             match = re.search(r'(\d+)\s*(times|occurrences)', desc)
@@ -410,23 +472,23 @@ class IntelligentImpactEstimator:
                 elif count >= 2:
                     reasons.append(f"{count} occurrences mentioned")
                     return 8, '; '.join(reasons)
-        
+
         # Check for frequency keywords
         for keyword in self.FREQUENCY_KEYWORDS['multiple']:
             if keyword in desc:
                 reasons.append(f"Multiple occurrence keyword '{keyword}' found")
                 return 16, '; '.join(reasons)
-        
+
         for keyword in self.FREQUENCY_KEYWORDS['single']:
             if keyword in desc:
                 reasons.append(f"Single occurrence keyword '{keyword}' found")
                 return 0, '; '.join(reasons)
-        
+
         # Check for "similar to" or references to other tickets
         if 'similar to' in desc or 'same as' in desc or re.search(r'RED-\d+', desc):
             reasons.append("References to similar issues found")
             return 8, '; '.join(reasons)
-        
+
         reasons.append("No clear frequency indicators, assuming single occurrence")
         return 0, '; '.join(reasons)
     
