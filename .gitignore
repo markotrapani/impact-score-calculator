@@ -7,6 +7,13 @@ output/
 *.xlsx
 *.xls
 
+# Markdown files - ignore in output, but keep documentation
+output/*.md
+!docs/**/*.md
+!README.md
+!CLAUDE.md
+!ROADMAP.md
+
 # Exception: Keep important example files that are part of the project
 !docs/example_bug_ticket.json
 !docs/example_rca_ticket.json

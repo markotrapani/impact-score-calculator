@@ -2,6 +2,16 @@
 
 A comprehensive Python toolkit for Jira ticket management, impact score calculation, and RCA automation. Features intelligent PDF analysis, automatic ticket creation, and multi-cluster RCA generation.
 
+## ⭐ New to This Project?
+
+**→ Start here:** [Tool Selection Guide](docs/TOOL_SELECTION_GUIDE.md) - Find the right tool for your task
+
+**Quick links:**
+
+- [Impact Score Model](docs/IMPACT_SCORE_MODEL.md) - How scoring works
+- [Intelligent Estimator Guide](docs/INTELLIGENT_ESTIMATOR_GUIDE.md) - Main tool documentation
+- [Roadmap](docs/ROADMAP.md) - Planned features and known issues
+
 ## 🎯 Features
 
 ### **Core Impact Score Calculation**
@@ -41,32 +51,43 @@ jira-helper/
 ├── README.md                           # This file
 ├── CLAUDE.md                           # Claude Code instructions
 ├── requirements.txt                    # Python dependencies
-├── src/                                # Python Scripts (Core Tools)
-│   ├── intelligent_estimator.py        # AI-powered auto-estimation (multi-format)
-│   ├── universal_ticket_parser.py      # Multi-format parser (PDF/XML/Word)
-│   ├── jira_creator.py                 # Jira ticket creation engine
-│   ├── create_jira_from_zendesk.py     # Create bug Jiras from Zendesk PDFs
-│   ├── create_rca_ticket.py            # Create RCA tickets from template
-│   ├── create_multi_cluster_rca.py     # Multi-cluster RCA creation
-│   ├── generate_rca_summary.py         # PDF analysis and summary generation
-│   ├── generate_rca_jira_form.py      # Generate RCA in exact Jira form structure
-│   ├── generate_complete_rca.py        # Complete RCA with auto-generated content
-│   ├── calculate_jira_scores.py        # Batch processor
-│   ├── estimate_impact_score.py        # Interactive single-ticket estimator
-│   ├── impact_score_calculator.py      # Core calculation library
-│   └── jira_impact_score_processor.py  # Batch processing engine
+│
+├── src/                                # Python Scripts
+│   ├── Core Libraries (4 files)
+│   │   ├── impact_score_calculator.py      # Core scoring logic
+│   │   ├── universal_ticket_parser.py      # Multi-format parser (PDF/XML/Word)
+│   │   ├── jira_impact_score_processor.py  # Batch processing engine
+│   │   └── jira_creator.py                 # Jira ticket creation engine
+│   │
+│   ├── Impact Score Tools (3 files)
+│   │   ├── intelligent_estimator.py        # PRIMARY TOOL - Auto-analyzes tickets
+│   │   ├── calculate_jira_scores.py        # Batch process Excel exports
+│   │   └── estimate_impact_score.py        # Interactive manual estimation
+│   │
+│   ├── Jira Creation Tools (2 files)
+│   │   ├── create_jira_from_zendesk.py     # Convert Zendesk → Jira
+│   │   └── create_rca.py                   # Create RCA tickets (multi-cluster)
+│   │
+│   └── RCA Content Generation (3 files)
+│       ├── generate_rca_form.py            # Auto-generate RCA content (Jira form format)
+│       ├── generate_complete_rca.py        # Complete RCA with cluster analysis
+│       └── generate_rca_summary.py         # RCA summary from PDFs
+│
 ├── docs/                               # Documentation
+│   ├── TOOL_SELECTION_GUIDE.md         # ⭐ START HERE - Which tool to use
 │   ├── IMPACT_SCORE_MODEL.md           # Scoring model specification
 │   ├── IMPACT_SCORE_VISUAL_GUIDE.md    # Visual diagrams and examples
-│   ├── INTELLIGENT_ESTIMATOR_GUIDE.md  # AI estimator guide
+│   ├── INTELLIGENT_ESTIMATOR_GUIDE.md  # AI estimator detailed guide
 │   ├── JIRA_PROCESSOR_USER_GUIDE.md    # Batch processor API reference
 │   ├── JIRA_CREATION_GUIDE.md          # Jira creation guide
 │   ├── ROADMAP.md                      # Project roadmap
-│   └── pdfs/                           # Example PDFs and templates
-└── examples/                           # Generated examples and outputs
-    ├── corrected_rca_description.txt   # Ready-to-use RCA description
-    ├── azure_*_rca.json                # Example RCA data files
-    └── example_*_ticket.json           # Example ticket data files
+│   ├── pdfs/                           # Example PDFs and templates
+│   └── examples/                       # Example Azure RCA scripts
+│
+└── output/                             # Generated files (gitignored)
+    ├── JIRA-*.md                       # Generated Jira tickets (markdown)
+    ├── RCA-*.md                        # Generated RCA content
+    └── *.json                          # Structured data exports
 ```
 
 ## 🔄 RCA Automation Workflow
