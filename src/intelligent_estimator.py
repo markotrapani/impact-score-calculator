@@ -66,10 +66,20 @@ class IntelligentImpactEstimator:
         'p5': 8,
     }
     
-    # Known high-value customers (examples - would be customized)
-    VIP_CUSTOMERS = [
-        'monday.com', 'monday', 'salesforce', 'twilio', 'stripe', 
-        'shopify', 'zoom', 'slack', 'datadog', 'hashicorp'
+    # Support tier keywords (from Zendesk organization notes)
+    # Used to detect high-value customers based on support package tier
+    SUPPORT_TIER_KEYWORDS = {
+        'premium_enterprise': ['premium enterprise', 'premium-enterprise', 'vip support', 'vip package'],
+        'enterprise': ['enterprise support', 'enterprise package'],
+        'standard': ['standard support', 'standard package'],
+        'essentials': ['essentials support', 'essentials package']
+    }
+
+    # ARR amount patterns (e.g., "$5M ARR", "$10M+", "5-10M ARR")
+    ARR_PATTERNS = [
+        r'\$(\d+)m[+\s]',  # $5M, $10M+
+        r'(\d+)m-(\d+)m arr',  # 5M-10M ARR
+        r'arr[:\s]+\$(\d+)m',  # ARR: $5M
     ]
     
     # Keywords indicating workaround availability
@@ -84,7 +94,14 @@ class IntelligentImpactEstimator:
             'operational impact', 'requires updating', 'human error',
             'reduced confidence', 'less effective', 'workaround impact'
         ],
-        'none': ['no workaround', 'cannot', 'impossible', 'requires fix', 'needs patch'],
+        'none': [
+            'no workaround', 'cannot', 'impossible', 'requires fix', 'needs patch',
+            'no confirmed workaround', 'unconfirmed', 'not confirmed',
+            'requires r&d approval', 'requires approval', 'r&d approval',
+            'with approval from', 'with r&d approval', 'pending approval',
+            'proposed solutions require', 'unverified workaround', 'untested',
+            'did not resolve', 'failed to fix', 'not fixed'
+        ],
     }
     
     # SLA breach indicators
@@ -92,6 +109,12 @@ class IntelligentImpactEstimator:
     
     # Frequency indicators
     FREQUENCY_KEYWORDS = {
+        'always': [
+            'persistent', 'always', 'consistently', 'constantly', 'continuous',
+            'survives restart', 'persists after restart', 'remains after restart',
+            'still present after', 'did not resolve', 'not fixed by restart',
+            'permanent', 'ongoing', 'reproduces every time'
+        ],
         'multiple': ['multiple', 'several', 'recurring', 'repeated', 'again', 'reoccur'],
         'single': ['first time', 'one time', 'single', 'once'],
     }
@@ -251,19 +274,28 @@ class IntelligentImpactEstimator:
             'dashboard', 'visualization', 'observability'
         ]
 
+        # Check for strong service degradation keywords FIRST (override monitoring detection)
+        strong_degradation_keywords = [
+            'broken', 'not replicating', 'replication broken', 'sync broken',
+            'synchronization broken', 'failed to start', 'cannot start',
+            'service degraded', 'crdb', 'replication'
+        ]
+        has_strong_degradation = any(kw in desc for kw in strong_degradation_keywords)
+
         # Check if this is a monitoring/metrics issue (P4) vs actual service issue
         is_monitoring_issue = any(indicator in desc for indicator in p4_indicators)
-        
+
         # Check for actual service degradation keywords
         service_ok_indicators = [
             'service is fine', 'service working', 'db is working',
-            'fully functional', 'no actual', 'appears to be',
-            'reporting issue', 'calculation artifact', 'metrics artifact'
+            'fully functional', 'no actual impact', 'appears to be fine',
+            'reporting issue only', 'calculation artifact', 'metrics artifact'
         ]
-        service_is_ok = any(indicator in desc for indicator in service_ok_indicators)
-        
-        # If it's a monitoring issue AND service is OK, likely P4
-        if is_monitoring_issue and service_is_ok:
+        # Service is OK only if indicators are present AND no strong degradation
+        service_is_ok = any(indicator in desc for indicator in service_ok_indicators) and not has_strong_degradation
+
+        # If it's a monitoring issue AND service is OK AND no strong degradation, likely P4
+        if is_monitoring_issue and service_is_ok and not has_strong_degradation:
             reasons.append("Monitoring/metrics issue with service functioning normally (P4)")
             return 16, '; '.join(reasons)
         
@@ -290,20 +322,30 @@ class IntelligentImpactEstimator:
                 return score, '; '.join(reasons)
         
         # Check description for actual severity indicators
-        if any(word in desc for word in ['critical', 'down', 'outage', 'stopped', 'crash', 'data loss']):
+        # Check for degradation/broken FIRST (P2 - 30 points) before critical (P1 - 38 points)
+        # This handles cases like "critical CRDB issue" which is degraded, not down
+        if any(word in desc for word in ['degraded', 'slow', 'performance', 'broken', 'not replicating',
+                                          'replication broken', 'sync broken', 'synchronization broken',
+                                          'failed to start', 'cannot start', 'service degraded']):
+            # Check if it's actual degradation or just monitoring
+            # Strong degradation keywords like "broken" override monitoring downgrade
+            if any(strong in desc for strong in ['broken', 'not replicating', 'replication broken',
+                                                   'sync broken', 'failed to start', 'cannot start', 'crdb',
+                                                   'replication']):
+                reasons.append("Strong service degradation keywords found (broken/not replicating)")
+                return 30, '; '.join(reasons)
+            if is_monitoring_issue and service_is_ok:
+                reasons.append("Performance keywords found but service OK (monitoring issue, P4)")
+                return 16, '; '.join(reasons)
+            reasons.append("Performance degradation keywords found")
+            return 30, '; '.join(reasons)
+        elif any(word in desc for word in ['critical', 'down', 'outage', 'stopped', 'crash', 'data loss']):
             # But if service is actually OK (just reporting issue), it's not critical
             if service_is_ok:
                 reasons.append("Critical keywords found but service is functioning (P4)")
                 return 16, '; '.join(reasons)
             reasons.append("Critical keywords found in description")
             return 38, '; '.join(reasons)
-        elif any(word in desc for word in ['degraded', 'slow', 'performance']):
-            # Check if it's actual degradation or just monitoring
-            if is_monitoring_issue and service_is_ok:
-                reasons.append("Performance keywords found but service OK (monitoring issue, P4)")
-                return 16, '; '.join(reasons)
-            reasons.append("Performance degradation keywords found")
-            return 30, '; '.join(reasons)
         elif any(word in desc for word in ['error', 'bug', 'issue', 'problem']):
             # For monitoring/metrics issues with no service impact
             if is_monitoring_issue and service_is_ok:
@@ -349,11 +391,42 @@ class IntelligentImpactEstimator:
         desc = ((self.ticket_data.get('description') or '') + ' ' +
                 (self.ticket_data.get('summary') or '')).lower()
 
-        # Check if VIP customer (ARR > $1M)
-        for vip in self.VIP_CUSTOMERS:
-            if vip.lower() in customer or vip.lower() in desc:
-                reasons.append(f"VIP customer '{vip}' identified (ARR > $1M)")
+        # Check support_tier field first (extracted directly from Zendesk organization notes)
+        support_tier = (self.ticket_data.get('support_tier') or '').lower()
+        if support_tier:
+            if 'premium' in support_tier and 'enterprise' in support_tier:
+                reasons.append(f"Support tier '{support_tier}' detected (ARR > $1M)")
                 return 15, '; '.join(reasons)
+            elif 'vip' in support_tier:
+                reasons.append(f"Support tier '{support_tier}' detected (ARR > $1M)")
+                return 15, '; '.join(reasons)
+            elif 'enterprise' in support_tier:
+                reasons.append(f"Support tier '{support_tier}' detected (likely $500K-$1M)")
+                return 13, '; '.join(reasons)
+
+        # Check for explicit ARR amounts in description (e.g., "$5M ARR", "5M-10M ARR")
+        import re
+        for pattern in self.ARR_PATTERNS:
+            match = re.search(pattern, desc, re.IGNORECASE)
+            if match:
+                arr_value = int(match.group(1))  # Get first captured group
+                if arr_value >= 1:  # $1M or more
+                    reasons.append(f"ARR ${arr_value}M detected in description (ARR > $1M)")
+                    return 15, '; '.join(reasons)
+                elif arr_value >= 500:  # $500K-$1M (captured in thousands)
+                    reasons.append(f"ARR ~${arr_value}K detected (likely $500K-$1M)")
+                    return 13, '; '.join(reasons)
+
+        # Check for support tier in organization notes (Premium Enterprise = high ARR)
+        for tier, keywords in self.SUPPORT_TIER_KEYWORDS.items():
+            for kw in keywords:
+                if kw in desc:
+                    if tier == 'premium_enterprise':
+                        reasons.append(f"'{kw}' support tier detected (ARR > $1M)")
+                        return 15, '; '.join(reasons)
+                    elif tier == 'enterprise':
+                        reasons.append(f"'{kw}' support tier detected (likely $500K-$1M)")
+                        return 13, '; '.join(reasons)
 
         # Check for multiple customers (low ARR)
         multiple_customers_keywords = [
@@ -473,7 +546,12 @@ class IntelligentImpactEstimator:
                     reasons.append(f"{count} occurrences mentioned")
                     return 8, '; '.join(reasons)
 
-        # Check for frequency keywords
+        # Check for frequency keywords (check 'always' first, then 'multiple', then 'single')
+        for keyword in self.FREQUENCY_KEYWORDS['always']:
+            if keyword in desc:
+                reasons.append(f"Always/persistent keyword '{keyword}' found")
+                return 16, '; '.join(reasons)
+
         for keyword in self.FREQUENCY_KEYWORDS['multiple']:
             if keyword in desc:
                 reasons.append(f"Multiple occurrence keyword '{keyword}' found")

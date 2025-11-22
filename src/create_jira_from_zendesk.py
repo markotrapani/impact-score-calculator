@@ -56,31 +56,64 @@ Examples:
     
     parser.add_argument(
         '--output',
-        help='Output file for ticket data (JSON format)'
+        help='Output file for ticket data (default: auto-generated .md file in output/)'
     )
-    
+
+    parser.add_argument(
+        '--format',
+        choices=['json', 'markdown', 'both'],
+        default='markdown',
+        help='Output format (default: markdown)'
+    )
+
     parser.add_argument(
         '--verbose',
         action='store_true',
         help='Show detailed analysis'
     )
-    
+
+    parser.add_argument(
+        '--use-claude',
+        action='store_true',
+        help='Use Claude AI for intelligent summary and description generation (requires ANTHROPIC_API_KEY)'
+    )
+
     args = parser.parse_args()
-    
+
     # Validate input file
     if not Path(args.zendesk_file).exists():
         print(f"Error: File not found: {args.zendesk_file}")
         sys.exit(1)
-    
+
     print("="*80)
     print("ZENDESK TO JIRA TICKET CREATOR")
     print("="*80)
     print(f"Input File: {args.zendesk_file}")
     print(f"Project: {args.project}")
+    if args.use_claude:
+        print(f"AI Mode: Claude-powered description generation")
     print()
-    
-    # Initialize creator
-    creator = JiraCreator()
+
+    # Initialize creator with optional Claude analyzer
+    claude_analyzer = None
+    if args.use_claude:
+        try:
+            from claude_analyzer import ClaudeAnalyzer
+            import os
+            if not os.environ.get('ANTHROPIC_API_KEY'):
+                print("⚠ Error: ANTHROPIC_API_KEY environment variable not set")
+                print("Please export your API key: export ANTHROPIC_API_KEY='your-key-here'")
+                sys.exit(1)
+            claude_analyzer = ClaudeAnalyzer()
+            print("✓ Claude AI analyzer initialized")
+        except ImportError:
+            print("⚠ Error: anthropic package not installed. Run: pip install anthropic>=0.39.0")
+            sys.exit(1)
+        except Exception as e:
+            print(f"⚠ Error initializing Claude analyzer: {e}")
+            sys.exit(1)
+
+    creator = JiraCreator(claude_analyzer=claude_analyzer)
     
     try:
         if args.suggest_only:
@@ -131,12 +164,22 @@ Examples:
         
         else:
             print("Creating Jira ticket from Zendesk...")
+
+            # Parse ticket to get components and scores
+            from intelligent_estimator import IntelligentImpactEstimator
+            estimator = IntelligentImpactEstimator(args.zendesk_file)
+            estimator.load_data()
+            ticket_info = estimator.extract_ticket_info()
+            components = estimator.estimate_all_components()
+            base_score, final_score, priority = estimator.calculate_impact_score(components)
+
+            # Create bug data
             bug_data = creator.create_bug_from_zendesk(args.zendesk_file, args.project)
-            
+
             # Override assignee if provided
             if args.assignee:
                 bug_data.assignee = args.assignee
-            
+
             print("\n" + "-"*80)
             print("JIRA TICKET DATA")
             print("-"*80)
@@ -148,17 +191,49 @@ Examples:
             if bug_data.assignee:
                 print(f"Assignee: {bug_data.assignee}")
             print(f"Labels: {', '.join(bug_data.labels)}")
-            
+
             print("\nCustom Fields:")
             for field, value in bug_data.custom_fields.items():
                 if value is not None:
                     print(f"  {field}: {value}")
-            
+
             if args.verbose:
                 print(f"\nDescription Preview:")
                 print(f"{bug_data.description[:500]}...")
-            
-            if args.output:
+
+            # Generate output files
+            zendesk_id = bug_data.custom_fields.get('zendesk_id', 'Unknown')
+
+            # Auto-generate output filename if not provided
+            if not args.output:
+                # Create output directory if it doesn't exist
+                output_dir = Path('output')
+                output_dir.mkdir(exist_ok=True)
+
+                if args.format in ['markdown', 'both']:
+                    output_file = output_dir / f"JIRA-{zendesk_id}.md"
+                else:
+                    output_file = output_dir / f"JIRA-{zendesk_id}.json"
+            else:
+                output_file = Path(args.output)
+
+            # Save markdown format
+            if args.format in ['markdown', 'both']:
+                markdown_content = creator.generate_markdown(
+                    jira_data=bug_data,
+                    components=components,
+                    zendesk_id=zendesk_id,
+                    impact_score=final_score,
+                    ticket_type='bug'
+                )
+
+                markdown_file = output_file if args.format == 'markdown' else output_file.with_suffix('.md')
+                with open(markdown_file, 'w') as f:
+                    f.write(markdown_content)
+                print(f"\n✓ Markdown file saved to {markdown_file}")
+
+            # Save JSON format
+            if args.format in ['json', 'both']:
                 ticket_data = {
                     'project': bug_data.project,
                     'issue_type': bug_data.issue_type,
@@ -169,22 +244,25 @@ Examples:
                     'assignee': bug_data.assignee,
                     'labels': bug_data.labels,
                     'custom_fields': bug_data.custom_fields,
-                    'linked_issues': bug_data.linked_issues
+                    'linked_issues': bug_data.linked_issues,
+                    'impact_score': final_score,
+                    'components': components
                 }
-                
-                with open(args.output, 'w') as f:
+
+                json_file = output_file if args.format == 'json' else output_file.with_suffix('.json')
+                with open(json_file, 'w') as f:
                     json.dump(ticket_data, f, indent=2)
-                print(f"\n✓ Ticket data saved to {args.output}")
-            
+                print(f"✓ JSON data saved to {json_file}")
+
             print("\n" + "="*80)
             print("NEXT STEPS")
             print("="*80)
-            print("1. Review the suggested Jira fields above")
-            print("2. Create the ticket in Jira with these fields")
-            print("3. Link the Zendesk ticket in the description")
-            print("4. Update the Impact Score custom field with the calculated value")
-            if args.output:
-                print(f"5. Use the JSON data in {args.output} for automation")
+            print("1. Review the generated markdown file")
+            print("2. Copy and paste the markdown content into Jira")
+            print("3. Verify all fields are correctly populated")
+            print("4. Link any related tickets as needed")
+            if args.format in ['markdown', 'both']:
+                print(f"5. Markdown file: {markdown_file if args.format != 'json' else output_file.with_suffix('.md')}")
     
     except Exception as e:
         print(f"\nError processing file: {e}")

@@ -122,8 +122,8 @@ class UniversalTicketParser:
         self.source_type = 'zendesk'
         data = {
             'source': 'zendesk',
-            'ticket_id': self._extract_zendesk_field(r'Ticket #(\d+)'),
-            'summary': self._extract_zendesk_field(r'Subject:\s*(.+)'),
+            'ticket_id': self._extract_zendesk_ticket_id(),
+            'summary': self._extract_zendesk_summary(),
             'description': self._extract_zendesk_description(),
             'priority': self._extract_zendesk_field(r'Priority:\s*(\w+)'),
             'status': self._extract_zendesk_field(r'Status:\s*(\w+)'),
@@ -132,10 +132,59 @@ class UniversalTicketParser:
             'created': self._extract_zendesk_field(r'Created:\s*(.+)'),
             'updated': self._extract_zendesk_field(r'Updated:\s*(.+)'),
             'labels': self._extract_zendesk_tags(),
+            'support_tier': self._extract_support_tier(),  # NEW: Extract support tier for ARR estimation
             'raw_text': self.raw_text
         }
 
         return data
+
+    def _extract_zendesk_ticket_id(self) -> Optional[str]:
+        """
+        Extract Zendesk ticket ID with improved logic.
+
+        Priority order:
+        1. Filename (most reliable): redislabs.zendesk.com_tickets_149320_print.pdf
+        2. First line of PDF (primary ticket): #149320 Customer - Summary
+        3. Fallback to any "Ticket #" reference
+        """
+        # Method 1: Extract from filename (most reliable)
+        filename = self.file_path.name
+        filename_match = re.search(r'tickets?_(\d+)', filename, re.IGNORECASE)
+        if filename_match:
+            return filename_match.group(1)
+
+        # Method 2: Look for #XXXXXX pattern in first 2000 chars (primary ticket)
+        first_section = self.raw_text[:2000]
+        primary_match = re.search(r'#(\d{5,7})\s+[\w\s]+-', first_section)
+        if primary_match:
+            return primary_match.group(1)
+
+        # Method 3: Fallback to "Ticket #" pattern anywhere
+        fallback_match = re.search(r'Ticket #(\d+)', self.raw_text, re.IGNORECASE)
+        return fallback_match.group(1) if fallback_match else None
+
+    def _extract_zendesk_summary(self) -> Optional[str]:
+        """
+        Extract Zendesk ticket summary/subject.
+
+        Try multiple patterns:
+        1. First line: #149320 FedEx - Summary text
+        2. Subject: field
+        """
+        # Method 1: Extract from first line (#TICKET_ID Customer - Summary)
+        first_line_match = re.search(r'#\d{5,7}\s+(.+?)(?=\n|$)', self.raw_text[:500])
+        if first_line_match:
+            summary = first_line_match.group(1).strip()
+            # Remove any trailing metadata
+            summary = re.sub(r'\s+Submitted$', '', summary)
+            return summary
+
+        # Method 2: Look for "Subject:" field
+        subject_match = self._extract_zendesk_field(r'Subject:\s*(.+)')
+        if subject_match:
+            return subject_match
+
+        return None
 
     def _extract_zendesk_field(self, pattern: str) -> Optional[str]:
         """Extract a field from Zendesk PDF using regex."""
@@ -143,25 +192,106 @@ class UniversalTicketParser:
         return match.group(1).strip() if match else None
 
     def _extract_zendesk_description(self) -> str:
-        """Extract ticket description from Zendesk PDF."""
-        # Look for description section (usually after "Description:" or before "Comments:")
-        desc_match = re.search(r'Description:\s*(.+?)(?=Comments:|$)', self.raw_text, re.DOTALL | re.IGNORECASE)
-        if desc_match:
-            return desc_match.group(1).strip()
+        """
+        Extract ticket description and comments from Zendesk PDF.
 
-        # Fallback: extract first large text block
-        lines = self.raw_text.split('\n')
-        description_lines = []
-        in_description = False
+        Captures the full ticket conversation including reproduction steps
+        and technical details from comments, while filtering out Zendesk metadata noise.
+        """
+        # Simpler approach: find start of comments and extract everything after,
+        # filtering out noise patterns
 
-        for line in lines:
-            if line.strip() and len(line) > 50:
-                in_description = True
-                description_lines.append(line.strip())
-            elif in_description and not line.strip():
-                break
+        # Find where comments start (after "Problem Summary" or first human name + timestamp)
+        start_match = re.search(r'(Problem Summary|[\w\s]+ \w+ \d+, \d{4} at \d+:\d+)', self.raw_text, re.IGNORECASE)
+        if not start_match:
+            return self.raw_text[:1000]
 
-        return ' '.join(description_lines) if description_lines else self.raw_text[:500]
+        # Extract from start position to end
+        content = self.raw_text[start_match.start():]
+        lines = content.split('\n')
+
+        # Patterns for noise/metadata to skip
+        skip_patterns = [
+            r'^Problem Summary \*SF',
+            r'^Focus Score',
+            r'^Ticket Location',
+            r'^Ticket Clusters',
+            r'^Redis Support Bot Agent',
+            r'^Analyzer Bot',
+            r'^File uploaded to SFTP',
+            r'^Package.*successfully analyzed',
+            r'^Parsed Logs',
+            r'^Health check',
+            r'^Total Open Tickets:',
+            r'^Organization Notes:',
+            r'^\*\*\*',
+            r'^EOF',
+            r'^Ticket ID$',
+            r'^Status$',
+            r'^Assignee$',
+            r'^Subject$',
+            r'^\d+/\d+$',  # Page numbers
+            r'redislabs\.zendesk\.com',
+            r'^https?://files\.cs\.redislabs',
+            r'^@\w+$',  # Mentions like @exazen
+            r'^\d{6}$',  # Standalone numbers
+            r'^Support Software by Zendesk',
+            # NOTE: Keep "SLA Package:" and account info for ARR detection
+            # r'SLA Package:',  # REMOVED - needed for customer tier detection
+            # r'Account Manager:',  # REMOVED - may contain useful context
+            # r'Solution Architect'  # REMOVED - may contain useful context
+        ]
+
+        cleaned_lines = []
+        skip_next_lines = 0
+        prev_blank = False
+
+        for i, line in enumerate(lines):
+            line_stripped = line.strip()
+
+            # Skip counted lines
+            if skip_next_lines > 0:
+                skip_next_lines -= 1
+                continue
+
+            # Skip if matches noise pattern
+            if any(re.search(pattern, line_stripped) for pattern in skip_patterns):
+                # If this is a bot agent line, skip until next human comment
+                if 'Bot Agent' in line_stripped or 'Bot' in line_stripped:
+                    skip_next_lines = 10  # Skip next few lines
+                continue
+
+            # Skip ticket list entries (#NNNNNN followed by status)
+            if re.match(r'^#\d{5,7}$', line_stripped):
+                skip_next_lines = 3  # Skip ticket list entry
+                continue
+
+            # Keep human comments (name + timestamp)
+            if re.search(r'[\w\s]+ \w+ \d+, \d{4} at \d+:\d+', line_stripped):
+                # Add separator before new comment
+                if cleaned_lines and cleaned_lines[-1] != '':
+                    cleaned_lines.append('')
+                    cleaned_lines.append(f'**{line_stripped}**')
+                    cleaned_lines.append('')
+                else:
+                    cleaned_lines.append(f'**{line_stripped}**')
+                    cleaned_lines.append('')
+                continue
+
+            # Keep substantive content lines
+            if line_stripped and len(line_stripped) > 2:
+                cleaned_lines.append(line_stripped)
+                prev_blank = False
+            # Allow single blank line for paragraphs
+            elif line_stripped == '' and not prev_blank and cleaned_lines:
+                cleaned_lines.append('')
+                prev_blank = True
+
+        # Remove trailing blank lines
+        while cleaned_lines and cleaned_lines[-1] == '':
+            cleaned_lines.pop()
+
+        return '\n'.join(cleaned_lines).strip() if cleaned_lines else self.raw_text[:1000]
 
     def _extract_zendesk_tags(self) -> List[str]:
         """Extract tags/labels from Zendesk PDF."""
@@ -170,6 +300,31 @@ class UniversalTicketParser:
             tags_str = tags_match.group(1).strip()
             return [tag.strip() for tag in tags_str.split(',')]
         return []
+
+    def _extract_support_tier(self) -> Optional[str]:
+        """
+        Extract support tier from Zendesk organization notes.
+
+        Looks for patterns like:
+        - SLA Package: Premium Enterprise
+        - SLA Package: Enterprise
+        - VIP Support
+
+        Returns the tier string (e.g., "Premium Enterprise") or None.
+        """
+        # Look for "SLA Package:" pattern in raw text
+        sla_match = re.search(r'SLA Package:\s*(.+?)(?:\n|$)', self.raw_text, re.IGNORECASE)
+        if sla_match:
+            tier = sla_match.group(1).strip()
+            # Clean up any trailing metadata
+            tier = re.sub(r'\s+TAM:.*', '', tier, flags=re.IGNORECASE)
+            return tier
+
+        # Look for VIP support mentions
+        if re.search(r'VIP\s+(?:Support|Package|Customer)', self.raw_text, re.IGNORECASE):
+            return "VIP Support"
+
+        return None
 
     def _parse_jira_pdf(self) -> Dict:
         """Parse Jira PDF export."""

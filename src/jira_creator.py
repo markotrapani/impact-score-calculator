@@ -22,6 +22,14 @@ from datetime import datetime
 from intelligent_estimator import IntelligentImpactEstimator
 from universal_ticket_parser import UniversalTicketParser
 from impact_score_calculator import ImpactScoreCalculator, ImpactScoreComponents
+from label_extractor import extract_labels
+
+# Optional: Claude AI for intelligent description generation
+try:
+    from claude_analyzer import ClaudeAnalyzer
+    CLAUDE_AVAILABLE = True
+except ImportError:
+    CLAUDE_AVAILABLE = False
 
 
 @dataclass
@@ -76,40 +84,76 @@ class JiraCreator:
         'minimal': 'Lowest'
     }
     
-    def __init__(self, jira_url: str = None, username: str = None, api_token: str = None):
-        """Initialize Jira creator (API integration would go here)."""
+    def __init__(self, jira_url: str = None, username: str = None, api_token: str = None,
+                 claude_analyzer: Optional['ClaudeAnalyzer'] = None):
+        """
+        Initialize Jira creator.
+
+        Args:
+            jira_url: Jira instance URL (for future API integration)
+            username: Jira username (for future API integration)
+            api_token: Jira API token (for future API integration)
+            claude_analyzer: Optional ClaudeAnalyzer for AI-powered description generation
+        """
         self.jira_url = jira_url
         self.username = username
         self.api_token = api_token
+        self.claude_analyzer = claude_analyzer
         # TODO: Initialize Jira API client when ready
     
-    def create_bug_from_zendesk(self, zendesk_file: str, project: str = 'RED') -> JiraTicketData:
+    def create_bug_from_zendesk(self, zendesk_file: str, project: str = 'RED',
+                                 use_claude: bool = None) -> JiraTicketData:
         """
         Create a bug Jira ticket from Zendesk PDF.
-        
+
         Args:
             zendesk_file: Path to Zendesk PDF
             project: Jira project key (RED, MOD, DOC, RDSC)
-            
+            use_claude: Whether to use Claude AI for description generation
+                       (defaults to True if claude_analyzer is available)
+
         Returns:
             JiraTicketData object ready for creation
         """
         print(f"Analyzing Zendesk ticket: {zendesk_file}")
-        
+
         # Parse Zendesk ticket
         parser = UniversalTicketParser(zendesk_file)
         zendesk_data = parser.parse()
-        
+
         # Calculate impact score
         estimator = IntelligentImpactEstimator(zendesk_file)
         estimator.load_data()
         ticket_info = estimator.extract_ticket_info()
         components = estimator.estimate_all_components()
         base_score, final_score, priority = estimator.calculate_impact_score(components)
-        
+
+        # Determine whether to use Claude
+        if use_claude is None:
+            use_claude = self.claude_analyzer is not None
+
+        # Use Claude for summary and description if enabled
+        if use_claude and self.claude_analyzer:
+            print("Using Claude AI to generate summary and description...")
+            try:
+                summary, description = self.claude_analyzer.analyze_zendesk_ticket(
+                    zendesk_conversation=zendesk_data.get('description', ''),
+                    ticket_id=zendesk_data.get('ticket_id', 'Unknown'),
+                    customer=zendesk_data.get('customer_name', 'Unknown'),
+                    product=self._detect_product(zendesk_data.get('description', ''))
+                )
+
+                # Override zendesk_data with Claude-generated content
+                zendesk_data['summary'] = summary
+                zendesk_data['description'] = description
+                print(f"✓ Claude generated summary: {summary[:60]}...")
+            except Exception as e:
+                print(f"⚠ Claude analysis failed ({e}), falling back to keyword-based extraction")
+                # Fall back to normal processing
+
         # Map to Jira fields
         jira_data = self._map_zendesk_to_jira(zendesk_data, components, final_score, priority, project)
-        
+
         return jira_data
     
     def create_rca_ticket(self, customer_name: str, date: str, 
@@ -295,11 +339,14 @@ class JiraCreator:
         else:
             severity = 'Low'
         
-        # Create labels
-        labels = ['Support', 'Customer-Reported']
-        if 'azure' in description.lower():
-            labels.append('ACRE')
-            labels.append('Azure-Integration')
+        # Extract keyword-based labels from ticket content
+        labels = extract_labels(
+            summary=zendesk_data['summary'],
+            description=description,
+            customer_name=zendesk_data.get('customer_name'),
+            source='zendesk',
+            max_labels=5
+        )
         
         # Extract cache info if present
         cache_info = self._extract_cache_info(description)
@@ -379,12 +426,150 @@ class JiraCreator:
     
     def _format_description(self, description: str, zendesk_id: str, impact_score: float) -> str:
         """Format description with additional context."""
-        formatted = f"{description}\n\n"
-        formatted += f"**Zendesk Ticket ID:** {zendesk_id}\n"
-        formatted += f"**Calculated Impact Score:** {impact_score}\n"
-        formatted += f"**Auto-generated from Zendesk ticket**\n"
-        
-        return formatted
+        # Just return the description without embedding score calculation details
+        return description
+
+    def generate_markdown(self, jira_data: JiraTicketData, components: Dict = None,
+                         zendesk_id: str = None, impact_score: float = None,
+                         ticket_type: str = "bug") -> str:
+        """
+        Generate clean markdown format for Jira ticket (not Jira wiki markup).
+
+        Args:
+            jira_data: JiraTicketData object
+            components: Impact score component breakdown
+            zendesk_id: Zendesk ticket ID
+            impact_score: Calculated impact score
+            ticket_type: Type of ticket (bug, rca)
+
+        Returns:
+            Formatted markdown string
+        """
+        lines = []
+
+        # Header section
+        if ticket_type == "bug":
+            # Check if RCA is needed based on description
+            needs_rca = "rca" in jira_data.description.lower() or "root cause" in jira_data.description.lower()
+            if needs_rca:
+                lines.append("# JIRA BUG TICKET - RCA NEEDED")
+            else:
+                lines.append("# JIRA BUG TICKET - READY FOR SUBMISSION")
+        else:
+            lines.append("# JIRA RCA TICKET")
+
+        lines.append("")
+        lines.append(f"**PROJECT:** {jira_data.project}")
+        lines.append(f"**ISSUE TYPE:** {jira_data.issue_type}")
+        lines.append(f"**PRIORITY:** {self._map_priority_to_p_level(jira_data.priority)}")
+
+        # Add impact score if available
+        if impact_score:
+            priority_level = self._get_priority_level(impact_score)
+            lines.append(f"**IMPACT SCORE:** {int(impact_score)} points ({priority_level})")
+
+        lines.append("")
+
+        # Summary section
+        lines.append("## Summary")
+        lines.append("")
+        lines.append(jira_data.summary or "[No summary available]")
+        lines.append("")
+
+        # Description section
+        lines.append("## Description")
+        lines.append("")
+        lines.append(jira_data.description or "[No description available]")
+        lines.append("")
+
+        # Environment section
+        lines.append("## Environment")
+        lines.append("")
+
+        # Extract environment info from custom fields
+        if jira_data.custom_fields:
+            env_fields = {
+                'Product': jira_data.custom_fields.get('environment', 'Redis Software'),
+                'Version': jira_data.custom_fields.get('version', ''),
+                'Customer': jira_data.custom_fields.get('customer', ''),
+                'Cluster': jira_data.custom_fields.get('cluster_id', ''),
+                'Region': jira_data.custom_fields.get('region', '')
+            }
+
+            for key, value in env_fields.items():
+                if value:
+                    lines.append(f"- **{key}:** {value}")
+
+        lines.append("")
+
+        # Labels section
+        lines.append("## Labels")
+        lines.append("")
+        if jira_data.labels:
+            lines.append(", ".join(jira_data.labels))
+        lines.append("")
+
+        # Related tickets section
+        lines.append("## Related Tickets")
+        lines.append("")
+        if zendesk_id:
+            lines.append(f"- **Zendesk:** #{zendesk_id}")
+        if jira_data.linked_issues:
+            lines.append(f"- **Related:** {', '.join(jira_data.linked_issues)}")
+        lines.append("")
+
+        # Attachments section
+        lines.append("## Attachments")
+        lines.append("")
+        if zendesk_id:
+            lines.append(f"- Zendesk PDF: redislabs.zendesk.com_tickets_{zendesk_id}_print.pdf")
+        lines.append("")
+
+        # Components section
+        lines.append("## Components")
+        lines.append("")
+        if jira_data.custom_fields and jira_data.custom_fields.get('component'):
+            lines.append(jira_data.custom_fields['component'])
+        lines.append("")
+
+        # Affects versions section
+        lines.append("## Affects Versions")
+        lines.append("")
+        if jira_data.custom_fields and jira_data.custom_fields.get('version'):
+            lines.append(jira_data.custom_fields['version'])
+        lines.append("")
+
+        # Fix versions section
+        lines.append("## Fix Versions")
+        lines.append("")
+        lines.append("[To be determined by R&D]")
+        lines.append("")
+
+        return "\n".join(lines)
+
+    def _map_priority_to_p_level(self, priority: str) -> str:
+        """Map Jira priority to P-level designation."""
+        mapping = {
+            'Highest': 'P1 - Critical',
+            'High': 'P2 - High',
+            'Medium': 'P3 - Medium',
+            'Low': 'P4 - Low',
+            'Lowest': 'P5 - Minimal'
+        }
+        return mapping.get(priority, priority)
+
+    def _get_priority_level(self, impact_score: float) -> str:
+        """Get priority level text from impact score."""
+        if impact_score >= 90:
+            return "CRITICAL"
+        elif impact_score >= 70:
+            return "HIGH"
+        elif impact_score >= 50:
+            return "MEDIUM"
+        elif impact_score >= 30:
+            return "LOW"
+        else:
+            return "MINIMAL"
     
     def _create_rca_description(self, customer_name: str, date: str, zendesk_tickets: List[str], auto_populated_data: Dict = None) -> str:
         """Create RCA description based on template with auto-populated data."""
