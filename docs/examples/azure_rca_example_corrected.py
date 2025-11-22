@@ -1,4 +1,15 @@
-**Summary:** Multi-cluster DMC high CPU utilization incident affecting 4 Azure clusters across 3 regions, resulting in 3 support tickets and 2 bug Jiras. The incident was resolved through a combination of manual DMC restarts and automatic VM freeze events.
+#!/usr/bin/env python3
+"""
+Generate Corrected RCA Description with Accurate Resolution Methods
+
+Based on PDF analysis, this tool creates an accurate RCA description with
+the correct resolution methods for each cluster.
+"""
+
+def generate_corrected_rca_description():
+    """Generate the corrected RCA description with accurate resolution methods."""
+    
+    description = """**Summary:** Multi-cluster DMC high CPU utilization incident affecting 4 Azure clusters across 3 regions, resulting in 3 support tickets and 2 bug Jiras. The incident was resolved through a combination of manual DMC restarts and automatic VM freeze events.
 
 **Affected Clusters:** 
 - prod110-europe-hdc-europe-cp102-titan2.northeurope (North Europe)
@@ -86,4 +97,38 @@ After updating the table below, ensure the tickets are linked with the `relates 
 | Document DMC audit logging best practices | Mitigate | @name | <jira-ticket> | Medium |
 | Review connection auditing configuration and performance | Investigate | @name | <jira-ticket> | Medium |
 | Implement automatic DMC recovery mechanisms | Prevent | @name | <jira-ticket> | Medium |
-| Investigate why VM freeze events resolved the issue on 3 clusters | Investigate | @name | <jira-ticket> | High |
+| Investigate why VM freeze events resolved the issue on 3 clusters | Investigate | @name | <jira-ticket> | High |"""
+
+    return description
+
+
+def main():
+    print("="*80)
+    print("CORRECTED RCA DESCRIPTION GENERATOR")
+    print("="*80)
+    
+    description = generate_corrected_rca_description()
+    
+    print("\n" + "-"*80)
+    print("CORRECTED RCA DESCRIPTION")
+    print("-"*80)
+    print(description)
+    
+    # Save to file
+    with open('corrected_rca_description.txt', 'w') as f:
+        f.write(description)
+    
+    print(f"\n✓ Corrected RCA description saved to corrected_rca_description.txt")
+    print("\n" + "="*80)
+    print("CORRECTED RCA DESCRIPTION GENERATION COMPLETE!")
+    print("="*80)
+    print("Resolution Methods by Cluster:")
+    print("✅ rediscluster-ktcsproda11.eastus2: Manual DMC restart")
+    print("✅ csgb-fsp-linx01-redis02.uksouth: Automatic VM freeze event")
+    print("✅ csie-fnp-linx01-redis03.northeurope: Automatic VM freeze event")
+    print("✅ prod110-europe-hdc-europe-cp102-titan2.northeurope: Automatic VM freeze event")
+    print("\nYour RCA description now accurately reflects the resolution methods!")
+
+
+if __name__ == "__main__":
+    main()

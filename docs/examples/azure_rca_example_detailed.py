@@ -1,4 +1,18 @@
-**Summary:** Multi-cluster DMC high CPU utilization incident affecting 4 Azure clusters across 3 regions, resulting in 3 support tickets and 2 bug Jiras. The incident was automatically mitigated via VM freeze events and manual failovers.
+#!/usr/bin/env python3
+"""
+Generate Detailed RCA Description with Cluster-Specific Timestamps
+
+This tool creates a comprehensive RCA description with:
+- Cluster-specific start/end times
+- Initial Root Cause analysis
+- Customer impact statements
+- Mitigation actions
+"""
+
+def generate_detailed_rca_description():
+    """Generate the complete RCA description based on PDF analysis."""
+    
+    description = """**Summary:** Multi-cluster DMC high CPU utilization incident affecting 4 Azure clusters across 3 regions, resulting in 3 support tickets and 2 bug Jiras. The incident was automatically mitigated via VM freeze events and manual failovers.
 
 **Affected Clusters:** 
 - prod110-europe-hdc-europe-cp102-titan2.northeurope (North Europe)
@@ -81,4 +95,39 @@ After updating the table below, ensure the tickets are linked with the `relates 
 | Implement DMC CPU monitoring and alerting improvements | Prevent | @name | <jira-ticket> | Medium |
 | Document DMC audit logging best practices | Mitigate | @name | <jira-ticket> | Medium |
 | Review connection auditing configuration and performance | Investigate | @name | <jira-ticket> | Medium |
-| Implement automatic DMC recovery mechanisms | Prevent | @name | <jira-ticket> | Medium |
+| Implement automatic DMC recovery mechanisms | Prevent | @name | <jira-ticket> | Medium |"""
+
+    return description
+
+
+def main():
+    print("="*80)
+    print("DETAILED RCA DESCRIPTION GENERATOR")
+    print("="*80)
+    
+    description = generate_detailed_rca_description()
+    
+    print("\n" + "-"*80)
+    print("GENERATED RCA DESCRIPTION")
+    print("-"*80)
+    print(description)
+    
+    # Save to file
+    with open('detailed_rca_description.txt', 'w') as f:
+        f.write(description)
+    
+    print(f"\n✓ Detailed RCA description saved to detailed_rca_description.txt")
+    print("\n" + "="*80)
+    print("RCA DESCRIPTION GENERATION COMPLETE!")
+    print("="*80)
+    print("Your RCA description includes:")
+    print("✅ Cluster-specific timestamps")
+    print("✅ Customer impact statement")
+    print("✅ Mitigation actions")
+    print("✅ Initial root cause analysis")
+    print("✅ Action items")
+    print("✅ Ready for Jira form!")
+
+
+if __name__ == "__main__":
+    main()
